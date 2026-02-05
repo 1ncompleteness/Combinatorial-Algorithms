@@ -1,0 +1,266 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[vlined,linesnumbered]{algorithm2e}
+\LinesNotNumbered
+\usepackage{enumitem}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+\begin{document}
+
+
+\section*{1. Big-O Notation}
+
+
+\[
+f_1 = n^2 + n\log n + 3, \quad f_2 = 32(n+1)(n-1), \quad f_3 = n^2\log^2 n, \quad f_4 = \frac{5n^2}{\log n}(\log n + 2)^3, \quad f_5 = \sqrt{n}(n^{3/2} + 2)
+\]
+
+\begin{align*}
+f_1 &= n^2 + n\log n + 3 \in \Theta(n^2) \\
+f_2 &= 32(n^2 - 1) \in \Theta(n^2) \\
+f_3 &= n^2 \log^2 n \in \Theta(n^2 \log^2 n) \\
+f_4 &= 5n^2\log^2 n + 30n^2\log n + 60n^2 + \frac{40n^2}{\log n} \in \Theta(n^2 \log^2 n) \\
+f_5 &= n^2 + 2\sqrt{n} \in \Theta(n^2)
+\end{align*}
+
+\[
+\boxed{(f_1, f_2), \ (f_1, f_5), \ (f_2, f_5) \in \Theta(n^2) \qquad (f_3, f_4) \in \Theta(n^2 \log^2 n)}
+\]
+
+
+\section*{2. Ranking Asymptotic Growth Rates}
+
+
+\[
+n^4, \quad 2^{\sqrt{\log n}}, \quad n\log^2 n, \quad 2^n, \quad (n+1)!, \quad 2^n n!, \quad n2^n, \quad n\log n
+\]
+
+\begin{align*}
+\log(2^{\sqrt{\log n}}) &= \sqrt{\log n} = o(\log n) \implies 2^{\sqrt{\log n}} = o(n^\epsilon) \\
+\frac{n\log n}{n\log^2 n} &= \frac{1}{\log n} \to 0 \\
+\frac{n^4}{2^n} &\to 0 \quad \text{(polynomial $<$ exponential)} \\
+\frac{(n+1)!}{2^n \cdot n!} &= \frac{n+1}{2^n} \to 0
+\end{align*}
+
+\[
+\boxed{2^{\sqrt{\log n}} < n\log n < n\log^2 n < n^4 < 2^n < n2^n < (n+1)! < 2^n n!}
+\]
+
+
+\section*{3. Analysis of Snippets}
+
+
+\noindent
+\begin{minipage}[t]{0.04\textwidth}
+\vspace{0pt}
+(a)
+\end{minipage}%
+\begin{minipage}[t]{0.50\textwidth}
+\vspace{0pt}
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwBlock{Begin}{begin}{}
+\Begin{
+$M \longleftarrow 0$\;
+$i \longleftarrow 1$\;
+\While{$i \le n$ \textbf{and} $M < A[i][i]$ \textbf{do}}{
+    \For{$j \leftarrow i$ \textbf{to} $n$ \textbf{do}}{
+        \If{$M < A[i][j]$ \textbf{then}}{
+            $M \longleftarrow A[i][j]$\;
+        }
+    }
+    $i \longleftarrow i + j$\;
+}
+}
+\end{algorithm}
+\end{minipage}%
+\begin{minipage}[t]{0.46\textwidth}
+\vspace{0pt}
+\begin{align*}
+&\text{After for-loop:} \quad j = n + 1 \\
+&i \leftarrow 1 + (n+1) = n + 2 > n \\
+&\text{While-loop iter.:} \le 1 \\
+&\text{For-loop iter.:} = n
+\end{align*}
+\[
+\boxed{T(n) = O(n)}
+\]
+\end{minipage}
+
+\vspace{1em}
+
+\noindent
+\begin{minipage}[t]{0.04\textwidth}
+\vspace{0pt}
+(b)
+\end{minipage}%
+\begin{minipage}[t]{0.50\textwidth}
+\vspace{0pt}
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwBlock{Begin}{begin}{}
+\Begin{
+$M \longleftarrow 0$\;
+$i \longleftarrow 1$\;
+\While{$i \le n$ \textbf{do}}{
+    $j \longleftarrow 2$\;
+    \While{$j \le n$ \textbf{do}}{
+        \If{$M < A[i][j]$ \textbf{then}}{
+            $M \longleftarrow A[i][j]$\;
+        }
+        $j \longleftarrow j + i$\;
+    }
+    $i \longleftarrow i + 1$\;
+}
+}
+\end{algorithm}
+\end{minipage}%
+\begin{minipage}[t]{0.46\textwidth}
+\vspace{0pt}
+\begin{align*}
+&\text{Outer:} \quad i = 1, \ldots, n \quad (n) \\
+&\text{Inner:} \quad j = 2, 2{+}i, \ldots \quad (n/i) \\
+&T(n) = \sum_{i=1}^{n} \frac{n}{i} = n H_n
+\end{align*}
+\[
+\boxed{T(n) = \Theta(n \log n)}
+\]
+\end{minipage}
+
+\vspace{1em}
+
+\noindent
+\begin{minipage}[t]{0.04\textwidth}
+\vspace{0pt}
+(c)
+\end{minipage}%
+\begin{minipage}[t]{0.50\textwidth}
+\vspace{0pt}
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwBlock{Begin}{begin}{}
+\Begin{
+$M \longleftarrow 0$\;
+$i \longleftarrow 1$\;
+\While{$i \le n$ \textbf{do}}{
+    $j \longleftarrow 2$\;
+    \While{$j \le n$ \textbf{do}}{
+        \If{$M < A[i][j]$ \textbf{then}}{
+            $M \longleftarrow A[i][j]$\;
+        }
+        $j \longleftarrow j^2$\;
+    }
+    $i \longleftarrow 2 \cdot i$\;
+}
+}
+\end{algorithm}
+\end{minipage}%
+\begin{minipage}[t]{0.46\textwidth}
+\vspace{0pt}
+\begin{align*}
+&\text{Outer:} \quad i = 1, 2, 4, \ldots, 2^k \\
+&\quad (k = \lfloor \log_2 n \rfloor) \\
+&\text{Inner:} \quad j = 2, 4, 16, \ldots \\
+&\quad (m = \lfloor \log_2 \log_2 n \rfloor)
+\end{align*}
+\[
+\boxed{T(n) = O(\log n \log \log n)}
+\]
+\end{minipage}
+
+\vspace{1em}
+
+\noindent
+\begin{minipage}[t]{0.04\textwidth}
+\vspace{0pt}
+(d)
+\end{minipage}%
+\begin{minipage}[t]{0.50\textwidth}
+\vspace{0pt}
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwBlock{Begin}{begin}{}
+\Begin{
+$M \longleftarrow 0$\;
+$i \longleftarrow 1$\;
+\While{$i \le n$ \textbf{do}}{
+    $j \longleftarrow 2$\;
+    \While{$j \le n$ \textbf{do}}{
+        \If{$M < A[i][j]$ \textbf{then}}{
+            $M \longleftarrow A[i][j]$\;
+        }
+        $j \longleftarrow i + j$\;
+    }
+    $i \longleftarrow 2 \cdot i$\;
+}
+}
+\end{algorithm}
+\end{minipage}%
+\begin{minipage}[t]{0.46\textwidth}
+\vspace{0pt}
+\begin{align*}
+&\text{Outer:} \quad i = 2^0, 2^1, \ldots \quad (O(\log n)) \\
+&\text{Inner:} \quad O(n/i) \\
+&T(n) = \sum_{k=0}^{\log n} \frac{n}{2^k} < 2n
+\end{align*}
+\[
+\boxed{T(n) = O(n)}
+\]
+\end{minipage}
+
+
+\section*{4. Interval Scheduling}
+
+
+\textbf{(a)}
+\[
+I_1 = (1,3), \quad I_2 = (2,5), \quad I_3 = (4,7), \quad I_4 = (6,9), \quad I_5 = (7,8)
+\]
+\begin{align*}
+&\text{Conflicts:} \quad \{I_1, I_2\}, \{I_2, I_3\}, \{I_3, I_4\}, \{I_4, I_5\} \\
+&\text{Graph:} \quad I_1 - I_2 - I_3 - I_4 - I_5 \quad (P_5)
+\end{align*}
+\begin{align*}
+S^* &= \{I_1, I_3, I_5\}, \quad B_1 = 3 \le 4 = A_3, \quad B_3 = 7 \le 7 = A_5
+\end{align*}
+\[
+\forall S \subseteq \{I_1, \ldots, I_5\},\ |S| = 4 \implies \exists \text{ conflict}
+\]
+\[
+\boxed{S^* = \{(1,3), (4,7), (7,8)\}, \quad |S^*| = 3}
+\]
+
+\textbf{(b)}
+\[
+I_1 = (1,5), \quad I_2 = (0,2), \quad I_3 = (4,6)
+\]
+\[
+I_2 \cap I_3 = \emptyset, \quad I_1 \cap I_2 \ne \emptyset, \quad I_1 \cap I_3 \ne \emptyset
+\]
+\[
+\boxed{S_{\text{maximal}} = \{I_1\},\ |S| = 1 \quad S_{\text{maximum}} = \{I_2, I_3\},\ |S| = 2}
+\]
+
+\textbf{(c)}
+\[
+I_k = (k, k+6), \quad k = 0, \ldots, 5 \qquad \forall i \ne j:\ I_i \cap I_j \ni 5 \implies K_6
+\]
+\[
+\boxed{\text{Max size} = 1, \quad \text{Optimal solutions} = 6}
+\]
+
+\textbf{(d)}
+\[
+\text{G1:}\ I_1 = (0,6),\ I_2 = (2,8),\ I_3 = (4,10) \qquad \text{G2:}\ I_4 = (10,16),\ I_5 = (12,18),\ I_6 = (14,20)
+\]
+\[
+\forall i,j \in G_k,\ i \ne j:\ I_i \cap I_j \ne \emptyset \qquad \forall i \in G_1,\ j \in G_2:\ B_i \le 10 \le A_j
+\]
+\[
+\boxed{\text{Max size} = 2, \quad \text{Optimal solutions} = 3 \times 3 = 9}
+\]
+
+\end{document}
