@@ -1,0 +1,178 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[vlined,linesnumbered]{algorithm2e}
+\LinesNotNumbered
+\usepackage{enumitem}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+\begin{document}
+
+
+\section*{1. Towers of Hanoi}
+
+\textbf{Constraint:} Moves allowed only $A \leftrightarrow B$ and $B \leftrightarrow C$ (not $A \leftrightarrow C$).
+
+\begin{align*}
+M(n) &= \text{moves for } A \to C \text{ (non-adjacent)} \\
+M'(n) &= \text{moves for } A \to B \text{ (adjacent)}
+\end{align*}
+
+\textbf{Algorithm for $A \to C$:}
+\begin{enumerate}[nosep]
+\item Move $(n-1)$ disks: $A \to C$ \hfill $[M(n-1)]$
+\item Move disk $n$: $A \to B$ \hfill $[1]$
+\item Move $(n-1)$ disks: $C \to A$ \hfill $[M(n-1)]$
+\item Move disk $n$: $B \to C$ \hfill $[1]$
+\item Move $(n-1)$ disks: $A \to C$ \hfill $[M(n-1)]$
+\end{enumerate}
+
+\begin{align*}
+M(n) &= 3M(n-1) + 2, \quad M(1) = 2 \\
+M(n) &= A \cdot 3^n - 1 \\
+M(1) = 2 &\implies 3A - 1 = 2 \implies A = 1
+\end{align*}
+
+\[
+\boxed{M(n) = 3^n - 1}
+\]
+
+
+\section*{2. Partition}
+
+\noindent
+\begin{minipage}[t]{0.04\textwidth}
+\vspace{0pt}
+(a)
+\end{minipage}%
+\begin{minipage}[t]{0.50\textwidth}
+\vspace{0pt}
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwBlock{Begin}{begin}{}
+\Begin{
+\textsc{Partition}$(A[1..n], p)$\;
+$k \longleftarrow 0$\;
+\For{$i \longleftarrow 1$ \textbf{to} $n$}{
+    \If{$A[i] \le p$ \textbf{then}}{
+        $k \longleftarrow k + 1$\;
+        \textsc{swap}$(A[k], A[i])$\;
+    }
+}
+\Return{$k$}\;
+}
+\end{algorithm}
+\end{minipage}%
+\begin{minipage}[t]{0.46\textwidth}
+\vspace{0pt}
+\begin{align*}
+&\text{Start of each loop iteration:} \\
+&\quad A[1..k] \le p \\
+&\quad A[k+1..i-1] > p \\[1em]
+&\text{When the algorithm ends:} \\
+&\quad A[1..k] \le p \\
+&\quad A[k+1..n] > p
+\end{align*}
+\end{minipage}
+
+\vspace{1em}
+
+\noindent
+\begin{minipage}[t]{0.04\textwidth}
+\vspace{0pt}
+(b)
+\end{minipage}%
+\begin{minipage}[t]{0.96\textwidth}
+\vspace{0pt}
+\begin{align*}
+&\text{Comparisons:} \quad n \\
+&\text{Swaps:} \quad \le n
+\end{align*}
+\[
+\boxed{T(n) = O(n)}
+\]
+\end{minipage}
+
+
+\section*{3. Selection Recurrence}
+
+\textbf{(a) Groups of size 3:}
+
+\begin{align*}
+\text{Groups:} \quad & n/3 \\
+\text{Elements} \le \text{group median:} \quad & 2 \\
+\text{Medians} \le \text{pivot:} \quad & \ge \frac{1}{2} \cdot \frac{n}{3} = \frac{n}{6} \\
+\text{Guaranteed} \le \text{pivot:} \quad & 2 \cdot \frac{n}{6} = \frac{n}{3} \\
+\text{Worst-case recurse:} \quad & n - \frac{n}{3} = \frac{2n}{3}
+\end{align*}
+
+\[
+\boxed{T(n) = T\!\left(\frac{n}{3}\right) + T\!\left(\frac{2n}{3}\right) + O(n)}
+\]
+
+\textbf{Note:} $\frac{1}{3} + \frac{2}{3} = 1 \implies T(n) = \Theta(n \log n)$
+
+\vspace{1em}
+\textbf{(b) Groups of size $2k+1$:}
+
+\begin{align*}
+\text{Groups:} \quad & \frac{n}{2k+1} \\
+\text{Elements} \le \text{group median:} \quad & k+1 \\
+\text{Medians} \le \text{pivot:} \quad & \ge \frac{n}{2(2k+1)} \\
+\text{Guaranteed} \le \text{pivot:} \quad & (k+1) \cdot \frac{n}{2(2k+1)} = \frac{(k+1)n}{2(2k+1)}
+\end{align*}
+
+\begin{align*}
+\text{Worst-case:} \quad n - \frac{(k+1)n}{2(2k+1)} &= n \cdot \frac{2(2k+1) - (k+1)}{2(2k+1)} \\
+&= n \cdot \frac{3k+1}{2(2k+1)}
+\end{align*}
+
+\[
+\boxed{T(n) = T\!\left(\frac{n}{2k+1}\right) + T\!\left(\frac{(3k+1)n}{2(2k+1)}\right) + O(n)}
+\]
+
+\textbf{Linear time condition:}
+\begin{align*}
+\frac{1}{2k+1} + \frac{3k+1}{2(2k+1)} = \frac{3(k+1)}{2(2k+1)} < 1 \iff k > 1
+\end{align*}
+
+
+\section*{4. Intersection Detection}
+
+\noindent
+\begin{minipage}[t]{0.50\textwidth}
+\vspace{0pt}
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwBlock{Begin}{begin}{}
+\Begin{
+\textsc{IntersectionDetect}$(I[1..n])$\;
+\textbf{Sort} $I$ by $A[i]$\;
+$m \longleftarrow B[1]$\;
+\For{$i \longleftarrow 2$ \textbf{to} $n$}{
+    \If{$A[i] < m$ \textbf{then}}{
+        \Return{\textbf{true}}\;
+    }
+    $m \longleftarrow \max(m, B[i])$\;
+}
+\Return{\textbf{false}}\;
+}
+\end{algorithm}
+\end{minipage}%
+\begin{minipage}[t]{0.50\textwidth}
+\vspace{0pt}
+\begin{align*}
+&\quad \forall j < i: A[j] \le A[i] \\
+&\quad \text{overlap} \iff A[i] < B[j] \\[1em]
+&T(n) = 2T(n/2) + O(n) \\
+&\text{Sorting:} \quad O(n \log n) \\
+&\text{Scan:} \quad O(n)
+\end{align*}
+\[
+\boxed{T(n) = O(n \log n)}
+\]
+\end{minipage}
+
+\end{document}
