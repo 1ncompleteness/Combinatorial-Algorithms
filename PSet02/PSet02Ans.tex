@@ -175,4 +175,49 @@ $m \longleftarrow B[1]$\;
 \]
 \end{minipage}
 
+\vspace{1em}
+\textbf{Divide \& Conquer:}
+
+\noindent
+\begin{minipage}[t]{0.50\textwidth}
+\vspace{0pt}
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwBlock{Begin}{begin}{}
+\Begin{
+\textsc{IntersectDC}$(I[1..n])$\;
+\If{$n \le 1$}{
+    \Return{\textbf{false}}\;
+}
+$h \longleftarrow \lfloor n/2 \rfloor$\;
+\If{\textsc{IntersectDC}$(I[1..h])$}{\Return{\textbf{true}}\;}
+\If{\textsc{IntersectDC}$(I[h{+}1..n])$}{\Return{\textbf{true}}\;}
+\tcp{Both halves sorted by $A[\cdot]$}
+$m \longleftarrow -\infty$\;
+\textbf{Merge} $I[1..h],\, I[h{+}1..n]$ by $A[\cdot]$:\;
+\For{\textbf{each} $k$ \textbf{in} merged order}{
+    \If{$A[k] < m$}{\Return{\textbf{true}}\;}
+    $m \longleftarrow \max(m,\, B[k])$\;
+}
+\Return{\textbf{false}}\;
+}
+\end{algorithm}
+\end{minipage}%
+\begin{minipage}[t]{0.50\textwidth}
+\vspace{0pt}
+\begin{align*}
+&\text{Merge-sort style:} \\
+&\quad \text{recursive calls sort halves} \\
+&\quad \text{no within-half overlaps remain} \\[0.5em]
+&\text{Merged order} \implies A[j'] \le A[k] \\
+&A[k] < m \implies A[k] < B[j'] \text{ for some } j' \\
+&\quad \therefore\; \text{overlap is cross-half} \\[1em]
+&\text{Merge step:} \quad O(n) \\
+&T(n) = 2T(n/2) + O(n)
+\end{align*}
+\[
+\boxed{T(n) = O(n \log n)}
+\]
+\end{minipage}
+
 \end{document}
