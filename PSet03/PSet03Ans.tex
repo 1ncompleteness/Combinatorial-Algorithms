@@ -1,0 +1,165 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,mathtools}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+\begin{document}
+
+
+\section*{1. Substitution Method}
+
+\textbf{(a)} $T(n) = T\!\left(\dfrac{4n}{7}\right) + T\!\left(\dfrac{n}{3}\right) + \Theta(n)$
+
+\textbf{Upper bound:}  $T(n) \le cn$ for sufficiently large $c$.
+
+\begin{align*}
+T(n) &\le c\cdot\frac{4n}{7} + c\cdot\frac{n}{3} + \alpha n
+= cn\!\left(\frac{4}{7} + \frac{1}{3}\right) + \alpha n
+= \frac{19}{21}\,cn + \alpha n \\
+&\le cn \iff \alpha \le \frac{2c}{21} \iff c \ge \frac{21\alpha}{2} \quad
+\end{align*}
+
+Base case: $T(c_0) = 1 \le c \cdot c_0$ for $c \ge 1/c_0$. 
+
+\textbf{Lower bound:}  $T(n) \ge dn$ for sufficiently small $d > 0$.
+
+\begin{align*}
+T(n) &\ge d\cdot\frac{4n}{7} + d\cdot\frac{n}{3} + \alpha' n
+= \frac{19}{21}\,dn + \alpha' n \\
+&\ge dn \iff d \le \frac{21\alpha'}{2} \quad
+\end{align*}
+
+\[
+\boxed{T(n) = \Theta(n)}
+\]
+
+
+\textbf{(b)} $T(n) = 2\,T\!\left(\dfrac{3n}{7}\right) + T\!\left(\dfrac{n}{7}\right) + \Theta(n)$
+
+\textbf{Upper bound:}  $T(n) \le cn\log n$ for sufficiently large $c$.
+
+\begin{align*}
+T(n) &\le 2c\cdot\frac{3n}{7}\log\frac{3n}{7} + c\cdot\frac{n}{7}\log\frac{n}{7} + \alpha n \\
+&= \frac{6cn}{7}\!\left(\log n + \log\tfrac{3}{7}\right) + \frac{cn}{7}\!\left(\log n + \log\tfrac{1}{7}\right) + \alpha n \\
+&= cn\log n\underbrace{\left(\tfrac{6}{7}+\tfrac{1}{7}\right)}_{\mathclap{=\,1}} + cn\underbrace{\left(\tfrac{6\log(3/7) + \log(1/7)}{7}\right)}_{\mathclap{=:\,\beta\,<\,0}} + \alpha n \\
+&= cn\log n + (\beta c + \alpha)\,n \\
+&\le cn\log n \iff \beta c + \alpha \le 0 \iff c \ge \alpha/|\beta| \quad
+\end{align*}
+
+Base case: $n_0$ large enough so that $cn_0\log n_0 \ge T(n_0)$. 
+
+\textbf{Lower bound:}  $T(n) \ge dn\log n$. With the same approach as before:
+
+\[
+T(n) \ge dn\log n + (\beta d + \alpha')\,n \ge dn\log n \iff d \le \alpha'/|\beta| \quad
+\]
+
+\[
+\boxed{T(n) = \Theta(n\log n)}
+\]
+
+
+\section*{2. Master Method}
+
+\textbf{(a)} $T(n) = 9\,T\!\left(\dfrac{n}{3}\right) + n^2$
+
+\begin{align*}
+a = 9,\quad b = 3,\quad \log_b a = 2 \quad&\implies\quad n^{\log_b a} = n^2 \\
+f(n) = n^2 = \Theta(n^2 \log^0 n) \quad&\implies\quad \text{Case 2}\;(k=0)
+\end{align*}
+
+\[
+\boxed{T(n) = \Theta(n^2 \log n)}
+\]
+
+
+\textbf{(b)} $T(n) = 2\,T\!\left(\dfrac{2n}{3}\right) + n^{4/3}$
+
+\begin{align*}
+a = 2,\quad b = \tfrac{3}{2},\quad \log_{3/2} 2 &= \frac{\ln 2}{\ln 3 - \ln 2} \approx 1.71 \\
+f(n) = n^{4/3} \quad&\implies\quad \tfrac{4}{3} < \log_{3/2}2 \quad\implies\quad \text{Case 1}
+\end{align*}
+
+\[
+\boxed{T(n) = \Theta\!\left(n^{\log_{3/2}2}\right)}
+\]
+
+
+\textbf{(c)} $T(n) = 27\,T\!\left(\dfrac{n}{3}\right) + n^3\log n$
+
+\begin{align*}
+a = 27,\quad b = 3,\quad \log_b a = 3 \quad&\implies\quad n^{\log_b a} = n^3 \\
+f(n) = n^3\log n = \Theta(n^3 \log^1 n) \quad&\implies\quad \text{Case 2}\;(k=1)
+\end{align*}
+
+\[
+\boxed{T(n) = \Theta(n^3 \log^2 n)}
+\]
+
+
+\textbf{(d)} $T(n) = 5\,T\!\left(\dfrac{n}{2}\right) + n^2\log\log n$
+
+\begin{align*}
+a = 5,\quad b = 2,\quad \log_b a &= \log_2 5 \approx 2.32 \\
+f(n) = n^2\log\log n \quad&\implies\quad 2 < \log_2 5 \quad\implies\quad \text{Case 1}
+\end{align*}
+
+\[
+\boxed{T(n) = \Theta\!\left(n^{\log_2 5}\right)}
+\]
+
+
+\section*{3. Recursion Tree Method}
+
+\textbf{(a)} $T(n) = 2\,T(n-3) + O(1)$
+
+\textbf{(i) Height:} $n \to n{-}3 \to n{-}6 \to \cdots \to O(1)$, so $h = \lfloor n/3 \rfloor$.
+
+\textbf{(ii) Work per level:} Level $k$ has $2^k$ nodes, each $O(1)$ $\implies$ $O(2^k)$.
+
+\textbf{(iii) Total:}
+
+\begin{align*}
+T(n) &= \sum_{k=0}^{n/3} O(2^k) = O\!\left(2^{n/3+1} - 1\right)
+\end{align*}
+
+Leaves: $2^{n/3}$ nodes each contributing $T(c) = 1$, so $T(n) = \Omega(2^{n/3})$.
+
+\[
+\boxed{T(n) = \Theta\!\left(2^{n/3}\right)}
+\]
+
+
+\textbf{(b)} $T(n) = 3\,T\!\left(\dfrac{n}{3}\right) + \dfrac{n}{\log n}$
+
+\textbf{(i) Height:} $n \to n/3 \to n/9 \to \cdots \to 1$, so $h = \log_3 n$.
+
+\textbf{(ii) Work per level:} Level $k$ has $3^k$ nodes of size $n/3^k$:
+
+\[
+3^k \cdot \frac{n/3^k}{\log(n/3^k)} = \frac{n}{\log n - k\log 3}
+\]
+
+\textbf{(iii) Total:}
+
+\begin{align*}
+T(n) &= \sum_{k=0}^{\log_3 n - 1} \frac{n}{\log n - k\log 3}
+\end{align*}
+
+Substituting $j = \log_3 n - k$:
+
+\begin{align*}
+&= \sum_{j=1}^{\log_3 n} \frac{n}{j\log 3}
+= \frac{n}{\log 3}\underbrace{\sum_{j=1}^{\log_3 n}\frac{1}{j}}_{\mathclap{\sum_{j=1}^{m}\frac{1}{j} = \Theta(\log m)}}
+= \Theta\!\left(\frac{n}{\log 3}\cdot \log\log_3 n\right)
+= \Theta(n\log\log n)
+\end{align*}
+
+\[
+\boxed{T(n) = \Theta(n\log\log n)}
+\]
+
+
+\end{document}
