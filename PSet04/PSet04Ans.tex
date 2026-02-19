@@ -1,0 +1,285 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[vlined,linesnumbered]{algorithm2e}
+\LinesNotNumbered
+\usepackage{enumitem}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+\begin{document}
+
+
+\section*{1. Greedy Rod-Cutting Counterexample}
+
+\textbf{Instance:} $n = 4$, $P = [1, 5, 8, 9]$.
+
+\[
+\begin{array}{c|cccc}
+i & 1 & 2 & 3 & 4 \\ \hline
+P[i] & 1 & 5 & 8 & 9 \\[2pt]
+U[i] = P[i]/i & 1 & 5/2 & 8/3 & 9/4
+\end{array}
+\]
+
+\textbf{Greedy:} $U^* = U[3] = 8/3$, so $i^* = 3$.
+Cut $\lfloor 4/3 \rfloor = 1$ piece of length $3$, leftover $4 - 3 = 1$.
+
+\[
+\text{Revenue} = P[3] + P[1] = 8 + 1 = 9
+\]
+
+\textbf{All partitions of $n = 4$:}
+
+\begin{align*}
+(4) &: P[4] = 9 \\
+(3,\, 1) &: P[3] + P[1] = 8 + 1 = 9 \\
+(2,\, 2) &: 2 \cdot P[2] = 2 \cdot 5 = 10 \\
+(2,\, 1,\, 1) &: P[2] + 2 \cdot P[1] = 5 + 2 = 7 \\
+(1,\, 1,\, 1,\, 1) &: 4 \cdot P[1] = 4
+\end{align*}
+
+\textbf{Optimal:} $(2, 2)$, revenue $= 10$.
+
+\[
+\boxed{\text{Greedy} = 9 < 10 = \text{OPT}}
+\]
+
+Greedy fails: $3 \nmid 4$, so the leftover piece of length $1$ has $U[1] = 1 < 8/3$.
+
+
+\section*{2. Minimum Subset Sums}
+
+\textbf{Claim:} Olivia's algorithm is \textbf{not} optimal.
+
+\textbf{Counterexample:} $n = 2$, $A = [1, 100]$, $W = 100$.
+
+\begin{align*}
+&\text{Sorted nondecreasing:} \quad A = [1, 100] \\
+&S[1] = 1 < 100, \quad S[2] = 101 \ge 100 \\
+&\implies i^* = 2
+\end{align*}
+
+\begin{align*}
+\text{Olivia:} \quad & B = [1, 1], \quad \textstyle\sum B[i] = 2 \\
+\text{Optimal:} \quad & B = [0, 1], \quad A[2] = 100 \ge W, \quad \textstyle\sum B[i] = 1
+\end{align*}
+
+\[
+\boxed{\text{Olivia's algorithm is not optimal} \quad (2 > 1)}
+\]
+
+Sorting nondecreasing selects the \emph{smallest} elements first; minimizing count requires selecting the \emph{largest} first.
+
+\textbf{Runtime:}
+
+\begin{align*}
+&\text{Sort:} \quad O(n \log n) \\
+&\text{Prefix sums:} \quad O(n) \\
+&\text{Binary search for } i^*\text{:} \quad O(\log n)
+\end{align*}
+
+\[
+\boxed{O(n \log n)}
+\]
+
+
+\section*{3. Subset Sum with Conflict Pairs}
+
+Let $V = \bigcup_{(x,y) \in L} \{x, y\}$ and $m = |V| \le 2k$.
+Number the elements of $V$ in increasing order as $v_0, v_1, \ldots, v_{m-1}$,
+with $\mathrm{pos}\colon V \to \{0, \ldots, m{-}1\}$.
+For each $v_j \in V$, let $N_j \subseteq V$ be its \emph{conflict neighborhood}:
+
+\[
+N_j = \{\, v_\ell : (v_j, v_\ell) \in L \text{ or } (v_\ell, v_j) \in L \,\}
+\]
+
+\textbf{State:}
+$DP[i][w][S]$ = maximum sum from items $\{1, \ldots, i\}$
+with total $\le w$, where $S \subseteq V$ is the set of selected conflict items.
+
+\textbf{Base:}
+$DP[0][w][\emptyset] = 0$ for all $w$; \quad $DP[0][w][S] = -\infty$ for $S \ne \emptyset$.
+
+\textbf{Recurrence:}
+Set $DP[i][w][S] \longleftarrow DP[i{-}1][w][S]$ (skip item $i$), then update:
+
+\begin{align*}
+&\text{If } i \notin V \text{ and } w \ge A[i]\text{:} \\
+&\qquad DP[i][w][S] \longleftarrow
+  \max\!\big(DP[i][w][S],\; A[i] + DP[i{-}1][w{-}A[i]][S]\big) \\[6pt]
+&\text{If } i = v_j \in V,\; v_j \in S,\;
+  S \cap N_j = \emptyset,\; w \ge A[i]\text{:} \\
+&\qquad DP[i][w][S] \longleftarrow
+  \max\!\big(DP[i][w][S],\; A[i] + DP[i{-}1][w{-}A[i]][S \setminus \{v_j\}]\big)
+\end{align*}
+
+\textbf{Answer:} $\displaystyle\max_{S \subseteq V}\; DP[n][W][S]$.
+
+\bigskip
+
+\textbf{Implementation:}
+Subsets $S \subseteq V$ are stored as $m$-bit integers $s$
+(bit $j$ is $1$ iff $v_j \in S$),
+so $v_j \in S$ becomes $s \mathbin{\&} 2^j \ne 0$,\;
+$S \cap N_j = \emptyset$ becomes $s \mathbin{\&} N[j] = 0$,\;
+and $S \setminus \{v_j\}$ becomes $s \oplus 2^j$.
+The arrays $\mathrm{prev}[w][s]$ and $\mathrm{curr}[w][s]$
+store $DP[i{-}1][w][S]$ and $DP[i][w][S]$.
+
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwBlock{Begin}{begin}{}
+\Begin{
+\textsc{ConflictSubsetSum}$(A[1..n],\, W,\, L[1..k])$\;
+$V \longleftarrow \bigcup_{(x,y) \in L} \{x,y\}$;\quad
+$m \longleftarrow |V|$\;
+Map $V$ to positions $\{0, \ldots, m{-}1\}$ via $\mathrm{pos}$\;
+\For{$j \longleftarrow 0$ \textbf{to} $m - 1$}{
+    $N[j] \longleftarrow 0$\;
+}
+\For{\textbf{each} $(x, y) \in L$}{
+    $N[\mathrm{pos}(x)] \longleftarrow N[\mathrm{pos}(x)] \mathbin{|} 2^{\mathrm{pos}(y)}$\;
+    $N[\mathrm{pos}(y)] \longleftarrow N[\mathrm{pos}(y)] \mathbin{|} 2^{\mathrm{pos}(x)}$\;
+}
+\For{$w \longleftarrow 0$ \textbf{to} $W$}{
+    \For{$s \longleftarrow 0$ \textbf{to} $2^m - 1$}{
+        $\mathrm{prev}[w][s] \longleftarrow -\infty$\;
+    }
+    $\mathrm{prev}[w][0] \longleftarrow 0$\;
+}
+\For{$i \longleftarrow 1$ \textbf{to} $n$}{
+    $\mathrm{curr} \longleftarrow \mathrm{prev}$\;
+    \For{$w \longleftarrow A[i]$ \textbf{to} $W$}{
+        \For{$s \longleftarrow 0$ \textbf{to} $2^m - 1$}{
+            \If{$i \notin V$}{
+                $\mathrm{curr}[w][s] \longleftarrow
+                  \max(\mathrm{curr}[w][s],\;
+                  A[i] + \mathrm{prev}[w{-}A[i]][s])$\;
+            }
+            \uElseIf{$s \mathbin{\&} 2^{\mathrm{pos}(i)} \ne 0$
+              \textbf{and} $s \mathbin{\&} N[\mathrm{pos}(i)] = 0$}{
+                $j \longleftarrow \mathrm{pos}(i)$\;
+                $\mathrm{curr}[w][s] \longleftarrow
+                  \max(\mathrm{curr}[w][s],\;
+                  A[i] + \mathrm{prev}[w{-}A[i]][s \oplus 2^j])$\;
+            }
+        }
+    }
+    $\mathrm{prev} \longleftarrow \mathrm{curr}$\;
+}
+\Return{$\displaystyle\max_{s}\; \mathrm{prev}[W][s]$}\;
+}
+\end{algorithm}
+
+\textbf{Runtime:}
+
+\begin{align*}
+&\text{Preprocessing:} \quad O(k) \\
+&\text{DP:} \quad n \times W \times 2^m \text{ states, } O(1) \text{ per state} \\
+&m = |V| \le 2k
+\end{align*}
+
+\[
+\boxed{O(n \cdot W \cdot 4^k)}
+\]
+
+
+\section*{4. Longest Palindrome Subsequence}
+
+\textbf{State:}
+$DP[i][j]$ = length of the longest palindrome subsequence (LPS) of $S[i..j]$.
+
+\textbf{Base:}
+$DP[i][i] = 1$; \quad $DP[i][j] = 0$ for $i > j$.
+
+\vspace{4em}
+\textbf{Recurrence:}
+
+\[
+DP[i][j] = \begin{cases}
+DP[i{+}1][j{-}1] + 2 & \text{if } S[i] = S[j] \\[4pt]
+\max\!\big(DP[i{+}1][j],\; DP[i][j{-}1]\big) & \text{if } S[i] \ne S[j]
+\end{cases}
+\]
+
+\bigskip
+
+\noindent
+\begin{minipage}[t]{0.53\textwidth}
+\vspace{0pt}
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwBlock{Begin}{begin}{}
+\Begin{
+\textsc{LPS}$(S[1..n])$\;
+\For{$i \longleftarrow 1$ \textbf{to} $n$}{
+    $DP[i][i] \longleftarrow 1$\;
+}
+\For{$\ell \longleftarrow 2$ \textbf{to} $n$}{
+    \For{$i \longleftarrow 1$ \textbf{to} $n - \ell + 1$}{
+        $j \longleftarrow i + \ell - 1$\;
+        \If{$S[i] = S[j]$}{
+            $DP[i][j] \longleftarrow DP[i{+}1][j{-}1] + 2$\;
+        }
+        \Else{
+            $DP[i][j] \longleftarrow \max(DP[i{+}1][j],\, DP[i][j{-}1])$\;
+        }
+    }
+}
+\Return{$\textsc{Reconstruct}(1, n)$}\;
+}
+\end{algorithm}
+\end{minipage}%
+\begin{minipage}[t]{0.47\textwidth}
+\vspace{0pt}
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwBlock{Begin}{begin}{}
+\Begin{
+\textsc{Reconstruct}$(i, j)$\;
+\If{$i > j$}{\Return{$\varepsilon$}\;}
+\If{$i = j$}{\Return{$S[i]$}\;}
+\If{$S[i] = S[j]$}{
+    \Return{$S[i] \cdot \textsc{Reconstruct}(i{+}1, j{-}1) \cdot S[j]$}\;
+}
+\If{$DP[i{+}1][j] \ge DP[i][j{-}1]$}{
+    \Return{$\textsc{Reconstruct}(i{+}1, j)$}\;
+}
+\Return{$\textsc{Reconstruct}(i, j{-}1)$}\;
+}
+\end{algorithm}
+\end{minipage}
+
+\bigskip
+
+\textbf{Example:} $S = \texttt{character}$ \quad ($n = 9$: c\,h\,a\,r\,a\,c\,t\,e\,r).
+
+\begin{align*}
+&DP[3][5] = 3 \quad (S[3..5] = \text{``ara''},\; S[3] = S[5] = \text{a} \implies DP[4][4] + 2 = 3) \\
+&DP[2][5] = 3 \quad (S[2] \ne S[5] \implies \max(DP[3][5],\, DP[2][4]) = 3) \\
+&DP[1][6] = 5 \quad (S[1] = S[6] = \text{c} \implies DP[2][5] + 2 = 5) \\
+&DP[1][9] = 5 \quad (\text{propagated through } DP[1][7], DP[1][8])
+\end{align*}
+
+Reconstruction: $DP[1][9] \to DP[1][6]$: select \textbf{c}; $\to DP[3][5]$: select \textbf{a}; $\to DP[4][4]$: select \textbf{r}.
+
+\[
+\boxed{\texttt{carac} \quad (\text{length } 5)}
+\]
+
+\textbf{Runtime:}
+
+\begin{align*}
+&\text{Fill:} \quad O(n^2) \text{ subproblems, } O(1) \text{ each} \\
+&\text{Reconstruct:} \quad O(n) \text{ steps}
+\end{align*}
+
+\[
+\boxed{O(n^2) \text{ time}, \quad O(n^2) \text{ space}}
+\]
+
+
+\end{document}
