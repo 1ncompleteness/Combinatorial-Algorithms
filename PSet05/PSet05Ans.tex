@@ -1,0 +1,273 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[table]{xcolor}
+\usepackage[vlined,linesnumbered]{algorithm2e}
+\LinesNotNumbered
+\usepackage{enumitem}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+\newcommand{\bc}[1]{\cellcolor{gray!20}{#1}}
+\newcommand{\pc}[1]{\cellcolor{red!15}{#1}}
+
+
+\begin{document}
+
+
+\section*{1. Shared Knapsack}
+
+\textbf{State:}
+Let $U_{\mathrm{sum}} = \sum_{i=1}^{n} U[i]$.
+
+$DP[i][c][u]$ = maximum Bob-value from items $\{1, \ldots, i\}$
+with total weight $\le c$ and total Alice-value exactly $u$.
+
+\textbf{Base:}
+$DP[0][c][0] = 0$ for all $c$; \quad $DP[0][c][u] = -\infty$ for $u \ge 1$.
+
+\textbf{Recurrence:}
+
+\[
+DP[i][c][u] = \max\!\begin{cases}
+DP[i{-}1][c][u] & \text{(skip item } i\text{)} \\
+DP[i{-}1][c{-}W[i]][u{-}U[i]] + V[i] & \text{if } c \ge W[i] \text{ and } u \ge U[i]
+\end{cases}
+\]
+
+\textbf{Answer:}
+
+\[
+\max_{0 \le u \le U_{\mathrm{sum}}} \min\!\big(u,\; DP[n][C][u]\big)
+\]
+
+\textbf{Implementation:}
+Reverse iteration in $c$ and $u$ eliminates the item dimension:
+$DP[c][u]$ stores $DP[i{-}1][c][u]$ for cells not yet updated in iteration $i$.
+
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwBlock{Begin}{begin}{}
+\Begin{
+\textsc{SharedKnapsack}$(U[1..n],\, V[1..n],\, W[1..n],\, C)$\;
+$U_{\mathrm{sum}} \longleftarrow \sum_{i=1}^{n} U[i]$\;
+$DP[0..C][0..U_{\mathrm{sum}}] \longleftarrow -\infty$\;
+\For{$c \longleftarrow 0$ \textbf{to} $C$}{
+    $DP[c][0] \longleftarrow 0$\;
+}
+\For{$i \longleftarrow 1$ \textbf{to} $n$}{
+    \For{$c \longleftarrow C$ \textbf{downto} $W[i]$}{
+        \For{$u \longleftarrow U_{\mathrm{sum}}$ \textbf{downto} $U[i]$}{
+            $DP[c][u] \longleftarrow \max\!\big(DP[c][u],\;
+              DP[c{-}W[i]][u{-}U[i]] + V[i]\big)$\;
+        }
+    }
+}
+$\mathrm{ans} \longleftarrow 0$\;
+\For{$u \longleftarrow 0$ \textbf{to} $U_{\mathrm{sum}}$}{
+    \If{$DP[C][u] \ne -\infty$}{
+        $\mathrm{ans} \longleftarrow \max\!\big(\mathrm{ans},\;
+          \min(u,\, DP[C][u])\big)$\;
+    }
+}
+\Return{$\mathrm{ans}$}\;
+}
+\end{algorithm}
+
+\textbf{Runtime:}
+
+\begin{align*}
+&\text{DP fill:} \quad n \times C \times U_{\mathrm{sum}} \text{ states, } O(1) \text{ each} \\
+&\text{Answer extraction:} \quad O(U_{\mathrm{sum}})
+\end{align*}
+
+\[
+\boxed{O(n \cdot C \cdot U_{\mathrm{sum}}), \quad U_{\mathrm{sum}} = \textstyle\sum_{i=1}^{n} U[i]}
+\]
+
+
+\section*{2. Longest Rapidly Increasing Subsequence}
+
+\textbf{State:}
+$DP[i]$ = length of the longest rapidly increasing subsequence ending at index $i$.
+
+\textbf{Base:}
+$DP[i] = 1$ for all $i$.
+
+\textbf{Recurrence:}
+
+\[
+DP[i] = 1 + \max\!\big\{\, DP[j] : 1 \le j < i \text{ and } 2 \cdot A[j] + 3 < A[i] \,\big\}
+\]
+
+(If no such $j$ exists, $DP[i] = 1$.)
+
+\textbf{Answer:} $\max_{1 \le i \le n} DP[i]$.
+
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwBlock{Begin}{begin}{}
+\Begin{
+\textsc{LRIS}$(A[1..n])$\;
+\For{$i \longleftarrow 1$ \textbf{to} $n$}{
+    $DP[i] \longleftarrow 1$\;
+    \For{$j \longleftarrow 1$ \textbf{to} $i - 1$}{
+        \If{$2 \cdot A[j] + 3 < A[i]$ \textbf{and} $DP[j] + 1 > DP[i]$}{
+            $DP[i] \longleftarrow DP[j] + 1$\;
+        }
+    }
+}
+\Return{$\max(DP[1], \ldots, DP[n])$}\;
+}
+\end{algorithm}
+
+\textbf{Runtime:}
+
+\[
+\sum_{i=1}^{n}(i-1) = \frac{n(n-1)}{2}
+\]
+
+\[
+\boxed{O(n^2)}
+\]
+
+
+\section*{3. Dynamic Programming Tables}
+
+\subsection*{(a)}
+
+\[
+A[i,j] = \begin{cases}
+i + j & \text{if } i = 1 \text{ or } j = n \\
+A[i{-}1, j] + A[i, j{+}1] & \text{otherwise}
+\end{cases}
+\]
+
+Base cases ($n = 4$, \colorbox{gray!20}{shaded} = base):
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{c|cccc}
+ & $j{=}1$ & $j{=}2$ & $j{=}3$ & $j{=}4$ \\ \hline
+$i{=}1$ & \bc{$2$} & \bc{$3$} & \bc{$4$} & \bc{$5$} \\
+$i{=}2$ & $\cdot$ & $\cdot$ & $\cdot$ & \bc{$6$} \\
+$i{=}3$ & $\cdot$ & $\cdot$ & $\cdot$ & \bc{$7$} \\
+$i{=}4$ & $\cdot$ & $\cdot$ & $\cdot$ & \bc{$8$}
+\end{tabular}
+\qquad
+$A[i,j] \longleftarrow \underbrace{A[i{-}1,j]}_{\uparrow} + \underbrace{A[i,j{+}1]}_{\leftarrow}$
+\end{center}
+
+Fill $i = 1 \to n$ ($\downarrow$), \; $j = n \to 1$ ($\leftarrow$):
+
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwBlock{Begin}{begin}{}
+\Begin{
+\For{$i \longleftarrow 1$ \textbf{to} $n$}{
+    \For{$j \longleftarrow n$ \textbf{downto} $1$}{
+        \If{$i = 1$ \textbf{or} $j = n$}{
+            $A[i, j] \longleftarrow i + j$\;
+        }
+        \Else{
+            $A[i, j] \longleftarrow A[i{-}1, j] + A[i, j{+}1]$\;
+        }
+    }
+}
+}
+\end{algorithm}
+
+When computing $A[i, j]$ for $i \ge 2$, $j \le n{-}1$:
+\begin{itemize}[nosep]
+\item $A[i{-}1, j]$: already computed in outer iteration $i{-}1$.
+\item $A[i, j{+}1]$: already computed earlier in the current iteration since the inner loop goes $n, n{-}1, \ldots$
+\end{itemize}
+
+Completed table ($n = 4$):
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{c|cccc}
+ & $j{=}1$ & $j{=}2$ & $j{=}3$ & $j{=}4$ \\ \hline
+$i{=}1$ & \bc{$2$} & \bc{$3$} & \bc{$4$} & \bc{$5$} \\
+$i{=}2$ & $15$ & $13$ & $10$ & \bc{$6$} \\
+$i{=}3$ & $45$ & $30$ & $17$ & \bc{$7$} \\
+$i{=}4$ & $100$ & $55$ & $25$ & \bc{$8$}
+\end{tabular}
+\end{center}
+
+Spot check: $A[4,1] = A[3,1] + A[4,2] = 45 + 55 = 100$.
+
+\subsection*{(b)}
+
+\[
+A[i,j] = \begin{cases}
+i + j & \text{if } i = 1,\, i = 2,\, j = 1, \text{ or } j = n \\
+A[i{-}2, j{+}1] + A[i{+}1, j{-}1] & \text{otherwise}
+\end{cases}
+\]
+
+($n = 4$, \colorbox{gray!20}{shaded} = base, \colorbox{red!15}{$\times$} = references outside array):
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{c|cccc}
+ & $j{=}1$ & $j{=}2$ & $j{=}3$ & $j{=}4$ \\ \hline
+$i{=}1$ & \bc{$2$} & \bc{$3$} & \bc{$4$} & \bc{$5$} \\
+$i{=}2$ & \bc{$3$} & \bc{$4$} & \bc{$5$} & \bc{$6$} \\
+$i{=}3$ & \bc{$4$} & $9$ & \pc{$\times$} & \bc{$7$} \\
+$i{=}4$ & \bc{$5$} & \pc{$\times$} & \pc{$\times$} & \bc{$8$}
+\end{tabular}
+\end{center}
+
+$A[3,2] = A[1,3] + A[4,1] = 4 + 5 = 9$. \;
+$A[3,3] = A[1,4] + A[4,2]$: requires $A[4,2]$, which references row $5$.
+
+\textbf{Impossible:}
+$\forall\, n \ge 3$: cell $(n, 2)$ is not a base case ($n \ge 3$, $j = 2 \ne 1$, $j = 2 < n$).
+The recurrence gives:
+\[
+A[n, 2] = A[n{-}2, 3] + \underbrace{A[n{+}1, 1]}_{\notin\, A[1..n,\,1..n]}
+\]
+$A[n{+}1, 1]$ lies outside $A[1..n, 1..n]$. The formula cannot be evaluated.
+
+For $n = 4$: $A[4,2] = A[2,3] + A[5,1]$ and $A[4,3] = A[2,4] + A[5,2]$, both referencing row $5$.
+$A[3,3] = A[1,4] + A[4,2]$ is also impossible since it depends on $A[4,2]$. \qed
+
+\subsection*{(c)}
+
+\[
+A[i,j] = \begin{cases}
+i + j & \text{if } i = 1,\, i = n, \text{ or } j = 1 \\
+A[i{-}1, j] + A[i{-}1, j{-}1] + A[i{+}1, j] & \text{otherwise}
+\end{cases}
+\]
+
+($n = 4$, \colorbox{gray!20}{shaded} = base, \colorbox{red!15}{$\circlearrowleft$} = cyclic):
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{c|cccc}
+ & $j{=}1$ & $j{=}2$ & $j{=}3$ & $j{=}4$ \\ \hline
+$i{=}1$ & \bc{$2$} & \bc{$3$} & \bc{$4$} & \bc{$5$} \\
+$i{=}2$ & \bc{$3$} & \pc{$\circlearrowleft$} & \pc{$\circlearrowleft$} & \pc{$\circlearrowleft$} \\
+$i{=}3$ & \bc{$4$} & \pc{$\circlearrowleft$} & \pc{$\circlearrowleft$} & \pc{$\circlearrowleft$} \\
+$i{=}4$ & \bc{$5$} & \bc{$6$} & \bc{$7$} & \bc{$8$}
+\end{tabular}
+\end{center}
+
+\textbf{Impossible:}
+$\forall\, n \ge 4$: cells $(2, 2)$ and $(3, 2)$ are both non-base.
+
+Column $j = 2$:
+\begin{align*}
+A[2, 2] &= \underbrace{A[1, 2]}_{\text{base}} + \underbrace{A[1, 1]}_{\text{base}} + A[3, 2] = 5 + A[3,2] \\
+A[3, 2] &= A[2, 2] + \underbrace{A[2, 1]}_{\text{base}} + \underbrace{A[4, 2]}_{\text{base}} = A[2, 2] + 3 + 6 = A[2, 2] + 9
+\end{align*}
+Substituting: $A[2,2] = 5 + (A[2,2] + 9) = A[2,2] + 14 \implies 0 = 14$. \; Contradiction.
+
+$\forall\, j \ge 2$: every column has the same pattern, $A[2,j] \leftrightarrow A[3,j]$ form a cycle. \qed
+
+
+\end{document}
