@@ -1,0 +1,261 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[vlined,linesnumbered]{algorithm2e}
+\LinesNotNumbered
+\usepackage{enumitem}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+\begin{document}
+
+
+\section*{1. Greedy Knapsack}
+
+\subsection*{(a)}
+
+\textbf{Algorithm:} Sort items by weight ascending. Pick the lightest items one by one until the next item would exceed capacity.
+
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwBlock{Begin}{begin}{}
+\Begin{
+\textsc{UnitValueKnapsack}$(W[1..n],\, C)$\;
+\textbf{Sort} $W$ in nondecreasing order\;
+$k \longleftarrow 0$;\quad $w \longleftarrow 0$\;
+\While{$k < n$ \textbf{and} $w + W[k+1] \le C$}{
+    $k \longleftarrow k + 1$\;
+    $w \longleftarrow w + W[k]$\;
+}
+\Return{$k$}\;
+}
+\end{algorithm}
+
+\textbf{Proof (by contradiction):}
+Let greedy select items $g_1, \ldots, g_k$ with $W[g_1] \le \cdots \le W[g_k]$ (the $k$ lightest).
+Let OPT select $m$ items; sort them by weight as $W[o_1] \le \cdots \le W[o_m]$.
+
+Since greedy chose the $k$ lightest items overall, the $j$-th lightest item overall is at most the $j$-th lightest in any subset:
+\[
+\forall\, j \le m: \quad W[g_j] \le W[o_j]
+\]
+Suppose $m > k$. Then:
+\[
+\sum_{j=1}^{m} W[o_j] \ge \sum_{j=1}^{k+1} W[o_j] \ge \sum_{j=1}^{k+1} W[g_j] > C \quad \text{(greedy stopped at } k\text{)}
+\]
+This contradicts OPT being feasible. \quad $\boxed{k \ge m \implies \text{greedy is optimal}}$
+
+\textbf{Runtime:} Sort $O(n \log n)$ + scan $O(n)$ = $\boxed{O(n \log n)}$
+
+\subsection*{(b)}
+
+\textbf{Counterexample:} $n = 3$, $C = 2$, $W = [1, 1, 2]$, $V = [1, 1, 3]$.
+
+\[
+\begin{array}{c|ccc}
+i & 1 & 2 & 3 \\ \hline
+W[i] & 1 & 1 & 2 \\
+V[i] & 1 & 1 & 3
+\end{array}
+\]
+
+\textbf{Greedy:} Sorted by weight: items $1, 2, 3$. Pick items $1, 2$ (weight $1 + 1 = 2 \le C$). Value $= 2$.
+
+\textbf{OPT:} Item $3$ alone: weight $2 \le C$, value $= 3$.
+
+\[
+\boxed{\text{Greedy} = 2 < 3 = \text{OPT}}
+\]
+
+\subsection*{(c)}
+
+\textbf{Counterexample:} $n = 2$, $C = 2$, $W = [1, 2]$, $V = [2, 3]$.
+
+\textbf{Greedy:} Sorted by weight: items $1, 2$. Pick item $1$ (weight $1$). Item $2$ does not fit ($1 + 2 = 3 > 2$). Value $= 2$.
+
+\textbf{OPT:} Item $2$ alone: weight $2 \le C$, value $= 3$.
+
+\[
+\boxed{\text{Greedy} = 2 < 3 = \text{OPT}}
+\]
+
+
+\section*{2. Modified Interval Scheduling}
+
+\subsection*{(a)}
+
+\textbf{Counterexample:} $I_1 = [0, 2)$ with $V_1 = 1$, \; $I_2 = [1, 3)$ with $V_2 = 2$, \; $I_3 = [3, 5)$ with $V_3 = 1$.
+
+\textbf{EFT greedy:} Sort by finish time: $I_1, I_2, I_3$. Pick $I_1$ (finish $2$). $I_2$ conflicts ($S_2 = 1 < 2 = F_1$), skip. Pick $I_3$ ($S_3 = 3 \ge 2$). Value $= 1 + 1 = 2$.
+
+\textbf{OPT:} $\{I_2, I_3\}$: compatible ($F_2 = 3 \le 3 = S_3$). Value $= 2 + 1 = 3$.
+
+\[
+\boxed{\text{Greedy} = 2 < 3 = \text{OPT}}
+\]
+
+\subsection*{(b)}
+
+\textbf{Greedy fails:} $I_1 = [0, 1)$ with $V_1 = 1$, \; $I_2 = [0.5, 1.5)$ with $V_2 = 100$.
+
+EFT picks $I_1$ (finish $1$), then $I_2$ conflicts ($S_2 = 0.5 < 1$). Value $= 1$. OPT: $\{I_2\}$, value $= 100$.
+
+\textbf{Adapted algorithm:}
+Since all intervals have unit length, $F[i] = S[i] + 1$, so sorting by start time is the same as sorting by finish time. We adapt the standard weighted interval scheduling DP:
+
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwBlock{Begin}{begin}{}
+\Begin{
+\textsc{UnitLengthScheduling}$(S[1..n],\, V[1..n])$\;
+\textbf{Sort} intervals by $S[i]$\;
+$DP[0] \longleftarrow 0$\;
+\For{$i \longleftarrow 1$ \textbf{to} $n$}{
+    $p[i] \longleftarrow$ largest $j \ge 0$ with $S[j] + 1 \le S[i]$ \tcp*{binary search}
+    $DP[i] \longleftarrow \max\!\big(DP[i{-}1],\; V[i] + DP[p[i]]\big)$\;
+}
+\Return{$DP[n]$}\;
+}
+\end{algorithm}
+
+\textbf{Correctness:} $p[i]$ finds the latest non-conflicting interval ($F[j] = S[j]+1 \le S[i]$).
+$DP[i]$ = max value using intervals $\{1, \ldots, i\}$: either skip $i$ ($DP[i{-}1]$) or take $i$ ($V[i] + DP[p[i]]$).
+
+\textbf{Runtime:} Sort $O(n \log n)$ + $n$ binary searches $O(\log n)$ + DP fill $O(n)$ = $\boxed{O(n \log n)}$
+
+\newpage
+\section*{3. Interval Coloring}
+
+\textbf{Data structure:} Sorted event array + stack of available room numbers.
+
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwBlock{Begin}{begin}{}
+\Begin{
+\textsc{IntervalColoring}$(S[1..n],\, F[1..n])$\;
+Create $2n$ events: $(S[i],\, \text{start},\, i)$ and $(F[i],\, \text{end},\, i)$ for each $i$\;
+\textbf{Sort} events by time (end before start at equal times)\;
+$R \longleftarrow 0$;\quad $\mathrm{free} \longleftarrow$ empty stack\;
+\For{\textbf{each} event in sorted order}{
+    \If{event is \textnormal{end} for interval $j$}{
+        $\mathrm{free}.\textsc{Push}(\mathrm{color}[j])$\;
+    }
+    \Else(\tcp*[f]{start for interval $j$}){
+        \If{$\mathrm{free} \ne \emptyset$}{
+            $\mathrm{color}[j] \longleftarrow \mathrm{free}.\textsc{Pop}()$ \tcp*{reuse room}
+        }
+        \Else{
+            $R \longleftarrow R + 1$\;
+            $\mathrm{color}[j] \longleftarrow R$ \tcp*{new room}
+        }
+    }
+}
+\Return{$R$}\;
+}
+\end{algorithm}
+
+\textbf{Correctness:}
+Whenever a new room $R$ is opened at time $S[i]$, the stack is empty, so all $R-1$ existing rooms are in use. Each of those rooms holds an interval that started before $S[i]$ and has not yet ended, so it overlaps $S[i]$. Together with $I_i$ itself, at least $R$ intervals are active at time $S[i]$:
+\[
+\text{depth}(S[i]) \ge R
+\]
+So $R \le D = \max_t \text{depth}(t)$: we never open more than $D$ rooms. Conversely, any valid coloring needs $\ge D$ rooms, so $R \ge D$. Hence $R = D$. \qed
+
+\textbf{Runtime:} Create events $O(n)$ + sort $O(n \log n)$ + sweep $O(n)$ stack ops = $\boxed{O(n \log n)}$
+
+%\newpage
+\section*{4. Interval Coloring with Small and Large Rooms}
+
+\textbf{Lower bound:}
+\begin{align*}
+&D = \max_t d(t) \quad \text{(max depth of all intervals)} \\
+&D_1 = \max_t d_1(t) \quad \text{(max depth of } B[i]=1 \text{ intervals)} \\
+&R_S + R_L \ge D \quad \text{(total rooms } \ge \text{ max depth)} \\
+&R_L \ge D_1 \quad \text{(large rooms } \ge \text{ max depth of large-only)} \\
+&R_S + 2R_L = (R_S + R_L) + R_L \ge D + D_1
+\end{align*}
+
+\textbf{Algorithm:} Two-pass event sweep. Pass~1 computes $D$. Pass~2 assigns rooms using two stacks
+$\mathrm{free}_L$, $\mathrm{free}_S$ and array $\mathrm{tag}[\cdot]$ tracking room type.
+
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwBlock{Begin}{begin}{}
+\Begin{
+\textsc{SmallLargeColoring}$(S[1..n],\, F[1..n],\, B[1..n])$\;
+Create $2n$ events: $(S[i],\, \text{start},\, i)$ and $(F[i],\, \text{end},\, i)$ for each $i$\;
+\textbf{Sort} events by time (end before start at equal times)\;
+\BlankLine
+\tcp{Pass 1: compute $D$}
+$D \longleftarrow 0$;\quad $\mathrm{active} \longleftarrow 0$\;
+\For{\textbf{each} event in sorted order}{
+    \lIf{end}{$\mathrm{active} \longleftarrow \mathrm{active} - 1$}
+    \lElse{$\mathrm{active} \longleftarrow \mathrm{active} + 1$;\quad $D \longleftarrow \max(D,\, \mathrm{active})$}
+}
+\BlankLine
+\tcp{Pass 2: assign rooms}
+$R_S \longleftarrow 0$;\quad $R_L \longleftarrow 0$\;
+$\mathrm{free}_S, \mathrm{free}_L \longleftarrow$ empty stacks\;
+\For{\textbf{each} event in sorted order}{
+    \If{event is \textnormal{end} for interval $j$}{
+        Push $\mathrm{color}[j]$ onto $\mathrm{free}_L$ or $\mathrm{free}_S$ based on $\mathrm{tag}[\mathrm{color}[j]]$\;
+    }
+    \ElseIf{$B[j] = 1$ \tcp*[f]{start, needs large room}}{
+        \If{$\mathrm{free}_L \ne \emptyset$}{
+            $\mathrm{color}[j] \longleftarrow \mathrm{free}_L.\textsc{Pop}()$ \tcp*{reuse large}
+        }
+        \ElseIf{$\mathrm{free}_S \ne \emptyset$}{
+            $r \longleftarrow \mathrm{free}_S.\textsc{Pop}()$\;
+            $\mathrm{tag}[r] \longleftarrow L$ \tcp*{promote small $\to$ large}
+            $R_S \longleftarrow R_S - 1$;\quad $R_L \longleftarrow R_L + 1$\;
+            $\mathrm{color}[j] \longleftarrow r$\;
+        }
+        \Else{
+            $R_L \longleftarrow R_L + 1$\;
+            $\mathrm{color}[j] \longleftarrow R_S + R_L$;\quad $\mathrm{tag}[\mathrm{color}[j]] \longleftarrow L$ \tcp*{new large}
+        }
+    }
+    \Else(\tcp*[f]{start, $B[j]=0$, needs any room}){
+        \If{$\mathrm{free}_S \ne \emptyset$}{
+            $\mathrm{color}[j] \longleftarrow \mathrm{free}_S.\textsc{Pop}()$ \tcp*{reuse small}
+        }
+        \ElseIf{$R_S + R_L < D$}{
+            $R_S \longleftarrow R_S + 1$\;
+            $\mathrm{color}[j] \longleftarrow R_S + R_L$;\quad $\mathrm{tag}[\mathrm{color}[j]] \longleftarrow S$ \tcp*{new small}
+        }
+        \Else{
+            $\mathrm{color}[j] \longleftarrow \mathrm{free}_L.\textsc{Pop}()$ \tcp*{reuse large (forced)}
+        }
+    }
+}
+\Return{$R_S + 2 R_L$}\;
+}
+\end{algorithm}
+
+The idea: when a $B[j]=0$ interval needs a room and no small room is free, we open a new small room instead of handing it a large room. This saves large rooms for future $B[i]=1$ intervals. We only fall back to reusing a large room when we have already opened $D$ rooms and cannot open more.
+
+\textbf{Proof:}
+
+\textbf{(A) Total rooms $= D$:}
+A new room is opened in two cases: (i) both stacks are empty, meaning every existing room is in use, so the current depth $\ge$ total rooms and total stays $\le D$; or (ii) $B[j]=0$ with $\mathrm{free}_S = \emptyset$ and total $< D$, so total stays $\le D$.
+Since any valid coloring needs $\ge D$ rooms, we get $R_S + R_L = D$.
+
+\textbf{(B) $R_L = D_1$:}
+Since cost $= D + R_L$, minimizing cost is equivalent to minimizing $R_L$.
+
+$R_L \ge D_1$: at a time when $D_1$ intervals with $B[i]=1$ overlap, each sits in a distinct large room.
+
+$R_L \le D_1$: call a room \emph{tainted} the moment it first becomes large (created large or promoted). Only a $B[j]=1$ interval can taint a room (when $\mathrm{free}_L = \emptyset$). A $B[j]=0$ interval never taints: it either reuses a free small room, opens a new small room (when total $< D$), or reuses a room that is already large.
+
+Consider the $r$-th tainting, caused by some $B[i]=1$ interval $I_i$. Since $\mathrm{free}_L = \emptyset$, all $r-1$ existing large rooms are occupied by intervals that overlap $S[i]$.
+We claim each of those occupants has $B=1$. Indeed, the only way a $B[j]=0$ interval sits in a large room is through the forced-reuse case (total $= D$ and $\mathrm{free}_S = \emptyset$). But that means \emph{all} $D$ rooms were occupied, so no room was free at all, contradicting $\mathrm{free}_L \ne \emptyset$.
+
+So at time $S[i]$ there are $r-1$ overlapping $B=1$ intervals plus $I_i$ itself, giving $d_1(S[i]) \ge r$ and hence $R_L \le D_1$.
+
+$\therefore\; R_L = D_1$, \quad $\text{cost} = D + D_1$, matching the lower bound. \qed
+
+\textbf{Runtime:} Two passes over $2n$ sorted events, each $O(n)$ + sort $O(n \log n)$ = $\boxed{O(n \log n)}$
+
+
+\end{document}
