@@ -1,0 +1,259 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[vlined,linesnumbered]{algorithm2e}
+\LinesNotNumbered
+\usepackage{enumitem}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+\begin{document}
+
+
+\section*{1. Minimizing Delay}
+
+\subsection*{(a)}
+
+\textbf{Construction:} $D[i] = D$ for all $i$ (equal deadlines).
+
+In any ordering $\sigma$, the completion time of job $\sigma(k)$ is $C_{\sigma(k)} = \sum_{j=1}^{k} A[\sigma(j)]$.
+\[
+\text{delay}(\sigma(k)) = C_{\sigma(k)} - D[\sigma(k)] = \sum_{j=1}^{k} A[\sigma(j)] - D
+\]
+
+Since $C_{\sigma(1)} \le C_{\sigma(2)} \le \cdots \le C_{\sigma(n)}$, the maximum is always at $k = n$:
+\[
+\max_k \text{delay}(\sigma(k)) = \sum_{i=1}^{n} A[i] - D
+\]
+
+This value is independent of $\sigma$, so all $n!$ permutations are optimal. $\boxed{n!}$
+
+\subsection*{(b)}
+
+\textbf{Construction:} $A[i] = 1$, $D[i] = i$ for all $i$.
+
+\textbf{Greedy (sort by $D$):} $\sigma = \mathrm{id}$. Completion $C_k = k$, delay $= k - k = 0$ $\forall\, k$.
+\[
+\max_k \text{delay} = 0
+\]
+
+\textbf{Uniqueness:} Any optimal $\sigma$ must have max delay $\le 0$, i.e., $C_{\sigma(k)} - D[\sigma(k)] \le 0$ $\forall\, k$. Since $C_{\sigma(k)} = k$:
+\[
+k - \sigma(k) \le 0 \implies \sigma(k) \ge k \quad \forall\, k
+\]
+\vspace{-5pt}
+\[
+\sum_{k=1}^{n} \sigma(k) \ge \sum_{k=1}^{n} k = \frac{n(n+1)}{2} 
+\text{; but } \sigma \text{ is a permutation:} \quad \sum_{k=1}^{n} \sigma(k) = \frac{n(n+1)}{2} \implies \sigma(k) = k \;\; \forall\, k \implies \boxed{1}
+\]
+
+\subsection*{(c)}
+
+\textbf{Counterexample:} $n = 2$, $A = [1, 10]$, $D = [100, 2]$.
+
+\[
+\begin{array}{c|cc}
+i & 1 & 2 \\ \hline
+A[i] & 1 & 10 \\
+D[i] & 100 & 2
+\end{array}
+\]
+
+\textbf{Sort by duration:} order $1, 2$. Completions: $1, 11$. Delays: $1 - 100 = -99$, $11 - 2 = 9$. Max $= 9$.
+
+\textbf{Sort by deadline (OPT):} order $2, 1$. Completions: $10, 11$. Delays: $10 - 2 = 8$, $11 - 100 = -89$. Max $= 8$. $\boxed{\text{Sort by duration} = 9 > 8 = \text{OPT}}$
+
+
+\section*{2. Minimizing Wait Time}
+
+Let $L[i] = Q[i] - R[i]$ (duration of request $i$). In ordering $\sigma$, the actual start time is
+\[
+S[\sigma(k)] = \sum_{j=1}^{k-1} L[\sigma(j)]
+\]
+and the wait time is $S[\sigma(k)] - R[\sigma(k)]$. We minimize $\max_k \big\{S[\sigma(k)] - R[\sigma(k)]\big\}$.
+
+\textbf{Algorithm:} Sort by $Q[i]$ (requested end time) in nondecreasing order.
+
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwBlock{Begin}{begin}{}
+\Begin{
+\textsc{MinWait}$(R[1..n],\, Q[1..n])$\;
+\textbf{Sort} intervals so that $Q[1] \le Q[2] \le \cdots \le Q[n]$\;
+$t \longleftarrow 0$\;
+\For{$i \longleftarrow 1$ \textbf{to} $n$}{
+    $S[i] \longleftarrow t$\;
+    $t \longleftarrow t + (Q[i] - R[i])$\;
+}
+\Return{$S[1..n]$}\;
+}
+\end{algorithm}
+
+\textbf{Proof (exchange argument):}
+Let $\sigma$ be any ordering with adjacent positions $k$, $k{+}1$ occupied by jobs $a$, $b$ with $Q[a] > Q[b]$. Let $P = \sum_{j=1}^{k-1} L[\sigma(j)]$ (cumulative duration before position $k$).
+
+Before swap (order $a, b$):
+\begin{align*}
+W_a &= P - R[a] \\
+W_b &= P + L[a] - R[b]
+\end{align*}
+
+After swap (order $b, a$):
+\begin{align*}
+W_b' &= P - R[b] \\
+W_a' &= P + L[b] - R[a]
+\end{align*}
+
+Since $L[a] = Q[a] - R[a] \ge 0$: \quad $W_b' = P - R[b] \le P + L[a] - R[b] = W_b$.
+
+Since $Q[b] < Q[a]$, i.e.\ $L[b] + R[b] < L[a] + R[a]$: \quad $W_a' = P + L[b] - R[a] < P + L[a] - R[b] = W_b$.
+
+$\therefore\; \max(W_b',\, W_a') \le W_b \le \max(W_a,\, W_b)$.
+
+Positions outside $k$, $k{+}1$ are unaffected since $L[a] + L[b]$ is invariant under the swap. Each swap removes an inversion without increasing the max wait. After finitely many swaps we reach the sorted-by-$Q$ ordering, whose max wait $\le$ that of any other ordering. \qed
+
+\textbf{Runtime:} Sort $O(n \log n)$ + schedule $O(n)$ = $\boxed{O(n \log n)}$
+
+\newpage
+\section*{3. Elementary Graph Problems}
+
+\subsection*{(a)}
+
+$G$ is a tree $\iff$ $G$ is connected and $m = n - 1$.
+
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwBlock{Begin}{begin}{}
+\Begin{
+\textsc{IsTree}$(G = (V, E))$\;
+\If{$m \ne n - 1$}{
+    \Return{\textbf{false}}\;
+}
+Run BFS from vertex $1$; let $r$ = number of visited vertices\;
+\Return{$r = n$}\;
+}
+\end{algorithm}
+
+\textbf{Correctness:} If $m \ne n - 1$, $G$ is not a tree. If $m = n - 1$ and $G$ is connected (BFS visits all $n$ vertices), then $G$ is a tree. If BFS visits $< n$ vertices, $G$ is disconnected, so not a tree.
+
+\textbf{Runtime:} $\boxed{O(n + m)}$
+
+\subsection*{(b)}
+
+Run DFS on $G$. Every non-tree edge $(u, v)$ ($u$ descendant, $v$ ancestor) is a back edge forming a fundamental cycle of length $\text{depth}[u] - \text{depth}[v] + 1$.
+
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwBlock{Begin}{begin}{}
+\Begin{
+\textsc{HasEvenCycle}$(G = (V, E))$\;
+Run DFS on $G$; record $\text{depth}[v]$, $\text{parent}[v]$; collect back edges $B$\;
+\BlankLine
+\tcp{Phase 1: check for even fundamental cycle}
+\For{\textbf{each} $(u, v) \in B$}{
+    \If{$\text{depth}[u] - \text{depth}[v] + 1$ is even}{
+        \Return{\textbf{true}}\;
+    }
+}
+\BlankLine
+\tcp{Phase 2: check for doubly-covered tree edge}
+$\text{diff}[1..n] \longleftarrow 0$\;
+\For{\textbf{each} $(u, v) \in B$}{
+    $\text{diff}[u] \longleftarrow \text{diff}[u] + 1$\;
+    $\text{diff}[v] \longleftarrow \text{diff}[v] - 1$\;
+}
+\For{\textbf{each} vertex $v$ in post-order}{
+    $\text{sub}[v] \longleftarrow \text{diff}[v] + \sum_{c \in \text{children}(v)} \text{sub}[c]$\;
+    \If{$\text{sub}[v] \ge 2$}{
+        \Return{\textbf{true}}\;
+    }
+}
+\Return{\textbf{false}}\;
+}
+\end{algorithm}
+
+\textbf{Correctness:}
+
+\textbf{Phase 1:} An even-length fundamental cycle is itself an even cycle.
+
+\textbf{Phase 2:} $\text{sub}[v]$ counts the number of back edges whose fundamental cycle includes the tree edge $(\text{parent}[v],\, v)$. If $\text{sub}[v] \ge 2$, two odd fundamental cycles share this tree edge. Their shared edges form a contiguous tree path, so the symmetric difference is a single cycle of length
+\[
+|C_1| + |C_2| - 2k \quad (\text{odd} + \text{odd} - \text{even} = \text{even})
+\]
+
+\textbf{Converse:} If neither condition holds, every tree edge is covered by $\le 1$ back edge, so no two fundamental cycles share an edge. Every cycle in $G$ is a symmetric difference of fundamental cycles; with no shared edges this is a disjoint union of odd cycles, so no even cycle exists. \qed
+
+\textbf{Runtime:} DFS $O(n + m)$ + Phase 1 $O(m)$ + Phase 2 $O(n + m)$ = $\boxed{O(n + m)}$
+
+\subsection*{(c)}
+
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwBlock{Begin}{begin}{}
+\Begin{
+\textsc{CountTriangles}$(G = (V, E))$\;
+Build adjacency matrix $M[1..n][1..n]$ and adjacency lists\;
+$\text{count} \longleftarrow 0$\;
+\For{$u \longleftarrow 1$ \textbf{to} $n$}{
+    \For{\textbf{each} $v \in \text{adj}[u]$ with $v > u$}{
+        \For{\textbf{each} $w \in \text{adj}[u]$ with $w > v$}{
+            \If{$M[v][w] = 1$}{
+                $\text{count} \longleftarrow \text{count} + 1$\;
+            }
+        }
+    }
+}
+\Return{count}\;
+}
+\end{algorithm}
+
+\textbf{Correctness:} Each triangle $\{u, v, w\}$ with $u < v < w$ is counted exactly once, at vertex $u$.
+
+\textbf{Runtime:}
+\begin{align*}
+&\text{Per vertex } u: \quad O(\deg(u)^2) \text{ pair checks, each } O(1) \text{ via matrix} \\
+&\text{Total:} \quad \sum_{u} \deg(u)^2 \le \max(\deg) \cdot \sum_{u} \deg(u) \le (n - 1) \cdot 2m \implies \boxed{O(nm)}
+\end{align*}
+
+
+\newpage
+\section*{4. Classifying Roundworms}
+
+Model the data as a graph $G = (V, E)$ with $V = \{1, \ldots, n\}$. Each edge $(i, j)$ carries a label $\ell_{ij} \in \{S, D\}$ (same or different subspecies). The data is consistent with two subspecies $\iff$ $\exists$ a 2-coloring $c : V \to \{A, B\}$ with $\ell_{ij} = S \implies c(i) = c(j)$ and $\ell_{ij} = D \implies c(i) \ne c(j)$.
+
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwBlock{Begin}{begin}{}
+\Begin{
+\textsc{ClassifyRoundworms}$(n,\, \text{edges with labels})$\;
+Build adjacency list with labels\;
+$\text{color}[1..n] \longleftarrow \text{nil}$\;
+\For{$s \longleftarrow 1$ \textbf{to} $n$}{
+    \If{$\text{color}[s] = \text{nil}$}{
+        $\text{color}[s] \longleftarrow A$;\quad enqueue $s$\;
+        \While{queue $\ne \emptyset$}{
+            $u \longleftarrow$ dequeue\;
+            \For{\textbf{each} $(u, w, \ell)$ in adjacency list}{
+                $\text{expected} \longleftarrow$ \lIf{$\ell = S$}{$\text{color}[u]$} \lElse{opposite of $\text{color}[u]$}
+                \If{$\text{color}[w] = \text{nil}$}{
+                    $\text{color}[w] \longleftarrow \text{expected}$;\quad enqueue $w$\;
+                }
+                \ElseIf{$\text{color}[w] \ne \text{expected}$}{
+                    \Return{\textbf{inconsistent}}\;
+                }
+            }
+        }
+    }
+}
+\Return{\textbf{consistent}}\;
+}
+\end{algorithm}
+
+\textbf{Correctness:}
+Within each connected component, BFS forces a unique coloring from the source. If no conflict arises, the constructed coloring satisfies all constraints $\implies$ consistent. If a conflict occurs at edge $(u, w)$, two paths from the source to $w$ impose contradictory colors, so $\forall$ 2-colorings at least one constraint is violated $\implies$ inconsistent. \qed
+
+\textbf{Runtime:} BFS visits each vertex once and each edge once. $\boxed{O(n + m)}$
+
+
+\end{document}
