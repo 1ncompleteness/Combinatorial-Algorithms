@@ -1,0 +1,122 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[vlined,linesnumbered]{algorithm2e}
+\LinesNotNumbered
+\usepackage{enumitem}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+\begin{document}
+
+
+\section*{1. Strongly Connected Components}
+
+\subsection*{(a)}
+
+\textbf{$C_n$:} $\forall\, u, v \in V$: following the cycle gives a directed $u \to v$ path and a directed $v \to u$ path, so $u \sim v$. $\boxed{1 \text{ SCC} = V}$
+
+\textbf{$P_n$:} Edges $1 \to 2 \to \cdots \to n$. $\forall\, i < j$: directed path $i \to j$ exists, but no directed path $j \to i$ (all edges increase index), so $i \not\sim j$. $\boxed{n \text{ SCCs:}\;\{1\},\{2\},\ldots,\{n\}}$
+
+\subsection*{(b)}
+
+$V = \{1, \ldots, n\}$. Place a directed cycle on $\{1, \ldots, n-k+1\}$:
+\[
+E = \{i \to i{+}1 : 1 \le i \le n{-}k\} \cup \{(n{-}k{+}1) \to 1\}
+\]
+Vertices $\{n{-}k{+}2, \ldots, n\}$ are isolated.
+
+The cycle forms 1 SCC. Each isolated vertex is a singleton SCC. $\boxed{1 + (k-1) = k \text{ SCCs}}$
+
+
+\section*{2. Graph Coloring}
+
+\subsection*{(a)}
+
+$(\Rightarrow)$ Let $c : V \to \{1,2\}$ be a proper 2-coloring. Set $A = c^{-1}(1)$, $B = c^{-1}(2)$. $\forall\, uv \in E$: $c(u) \ne c(v)$, so one endpoint is in $A$ and the other in $B$ $\implies$ $(A,B)$ is a bipartition.
+
+$(\Leftarrow)$ Given bipartition $(A,B)$, define $c(v) = 1$ if $v \in A$, $c(v) = 2$ if $v \in B$. $\forall\, uv \in E$: endpoints lie in different parts $\implies$ $c(u) \ne c(v)$. \qed
+
+\subsection*{(b)}
+
+Process vertices in any order $v_1, \ldots, v_n$. Assign $c(v_i) = \min\{j \in \{1, \ldots, \Delta{+}1\} : j \ne c(v_\ell)\;\forall\, v_\ell \in N(v_i),\;\ell < i\}$.
+
+When coloring $v_i$: at most $\deg(v_i) \le \Delta$ neighbors already colored, blocking $\le \Delta$ colors from $\{1, \ldots, \Delta{+}1\}$. Since $\Delta + 1 > \Delta$, at least one color is available. \qed
+
+\subsection*{(c)}
+
+$G_\Delta = K_{\Delta+1}$. Every vertex has degree $\Delta$. All $\Delta + 1$ vertices are pairwise adjacent $\implies$ any proper coloring assigns distinct colors to all vertices $\implies$ needs $\Delta + 1$ colors. $\boxed{\text{Not } \Delta\text{-colorable}}$
+
+
+\newpage
+\section*{3. Shortest Path Trees}
+
+\subsection*{(a)}
+
+Yes. Triangle: $w(u,w) = 1$, $w(w,v) = 1$, $w(u,v) = 2$.
+
+Path $u$-$v$ (direct): weight $2$. \quad Path $u$-$w$-$v$: weight $1 + 1 = 2$. $\boxed{\text{Two distinct shortest } u\text{-}v \text{ paths}}$
+
+\subsection*{(b)}
+
+$V = \{u,a,b,c\}$. Edges: $(u,a)=3$, $(u,b)=1$, $(b,a)=2$, $(a,c)=1$.
+
+\[
+\begin{array}{c|cccc}
+v & u & b & a & c \\ \hline
+d(u,v) & 0 & 1 & 3 & 4
+\end{array}
+\]
+
+Two shortest paths to $a$: $u$-$a$ (weight $3$) and $u$-$b$-$a$ (weight $1+2=3$).
+
+Choose $P(u,b) = u$-$b$, \; $P(u,a) = u$-$a$, \; $P(u,c) = u$-$b$-$a$-$c$.
+\[
+T(u) = \{(u,a),\;(u,b),\;(b,a),\;(a,c)\} \quad\text{(4 edges, 4 vertices)} \implies \boxed{\text{cycle } u\text{-}a\text{-}b\text{-}u}
+\]
+
+\subsection*{(c)}
+
+For each $v \ne u$, choose predecessor $\pi(v)$ satisfying $d(u,v) = d(u,\pi(v)) + w(\pi(v),v)$. Define $P(u,v) = P(u,\pi(v)) \cdot (\pi(v),v)$.
+
+\textbf{$T(u)$ is a tree:}
+\begin{enumerate}[leftmargin=*,itemsep=2pt]
+\item \textbf{$n-1$ edges:} Each $v \ne u$ contributes exactly one edge $(\pi(v),v)$. Distinct $v$ yield distinct edges.
+\item \textbf{Connected:} The chain $v,\pi(v),\pi(\pi(v)),\ldots$ terminates at $u$, since $w(e) > 0 \implies d(u,\pi(v)) < d(u,v)$ (strictly decreasing). Every edge in this chain belongs to $T(u)$, so $u$ reaches every $v$.
+\item Connected $+$ $n$ vertices $+$ $n-1$ edges $\implies$ tree. \qed
+\end{enumerate}
+
+
+\newpage
+\section*{4. Shortest Shortest-Path Tree}
+
+\textbf{Counterexample.} $V = \{a,b,c,d\}$.
+
+\[
+\begin{array}{c|ccccc}
+\text{edge} & (a,b) & (b,c) & (c,d) & (a,c) & (b,d) \\ \hline
+w & 2 & 2 & 2 & 3 & 3
+\end{array}
+\]
+
+\textbf{MST} (Kruskal): $\{(a,b),\;(b,c),\;(c,d)\}$, weight $= 2 + 2 + 2 = 6$.
+
+\textbf{Best SPT from each root:}
+
+\[
+\begin{array}{c|l|c}
+u & T(u) & W(u) \\ \hline
+a & (a,b)=2,\;\;(a,c)=3,\;\;(c,d)=2 & 7 \\
+b & (b,a)=2,\;\;(b,c)=2,\;\;(b,d)=3 & 7 \\
+c & (c,a)=3,\;\;(c,b)=2,\;\;(c,d)=2 & 7 \\
+d & (d,c)=2,\;\;(d,b)=3,\;\;(b,a)=2 & 7
+\end{array}
+\]
+
+$d(a,d) = 5 < 6 = w(a\text{-}b\text{-}c\text{-}d)$, so every SPT from $a$ or $d$ must use a weight-3 shortcut. For roots $b$ and $c$, the shortest path to the far vertex also requires a weight-3 edge.
+
+$\boxed{W(u^*) = 7 > 6 = W(\text{MST}) \implies \text{Dylan's algorithm does not find an MST}}$
+
+
+\end{document}
