@@ -1,0 +1,155 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[vlined,linesnumbered]{algorithm2e}
+\LinesNotNumbered
+\usepackage{enumitem}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+\begin{document}
+
+
+\section*{1. Updating Maximum Flow}
+
+\vspace{-10pt}
+\subsection*{(a) Capacity increase by 1}
+
+Edge $(u,v)$ capacity: $c(u,v) \to c(u,v) + 1$. Flow $f$ still feasible (capacity only increased).
+
+In the residual graph $G_f$ with updated capacity, the residual capacity of $(u,v)$ increases by $1$. Find one augmenting $s$-$t$ path via BFS.
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+\item If found: augment by $1$ $\implies$ new max flow $= |f| + 1$.
+\item If not found: $|f|$ unchanged (still max).
+\end{itemize}
+
+\[\boxed{O(m + n) \text{: one BFS}}\]
+
+\vspace{-20pt}
+\subsection*{(b) Capacity decrease by 1}
+
+Edge $(u,v)$ capacity: $c(u,v) \to c(u,v) - 1$.
+
+\textbf{Case 1:} $f(u,v) \le c(u,v) - 1$. Flow still feasible under new capacity. Still max (no new augmenting paths). Done.
+
+\textbf{Case 2:} $f(u,v) = c(u,v)$ (saturated). Set $f(u,v) \leftarrow c(u,v) - 1$. Now $u$ has excess $+1$, $v$ has deficit $-1$.
+
+Build residual graph with updated capacity and flow. Find augmenting path from $u$ to $v$:
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+\item If found: push $1$ unit $\implies$ conservation restored, $|f|$ unchanged.
+\item If not found: max flow $= |f| - 1$. The original flow decomposition includes an $s$-$t$ path through $(u,v)$. Remove $1$ unit of flow along this entire path: BFS from $u$ backward along flow-carrying edges to $s$ (reduces inflow to $u$, fixing excess), BFS from $v$ forward along flow-carrying edges to $t$ (reduces outflow from $v$, fixing deficit). Result: valid flow of value $|f| - 1$.
+\end{itemize}
+
+\[\boxed{O(m + n) \text{: constant number of BFS calls}}\]
+
+
+\section*{2. Minimum Cut in Undirected Graphs}
+
+\vspace{-10pt}
+\subsection*{(a)}
+
+Replace each undirected edge $\{a,b\}$ with two directed edges $(a,b)$ and $(b,a)$, each capacity $1$. For every pair $s, t \in V$: compute max $s$-$t$ flow $=$ min $s$-$t$ cut.
+
+\begin{gather*}
+\text{Global min cut} = \min_{s,t \in V} \text{min } s\text{-}t \text{ cut} \\
+\binom{n}{2} \text{ max-flow computations} \implies \boxed{O(n^2 \cdot T_{\text{maxflow}})}
+\end{gather*}
+
+
+\vspace{-20pt}
+\subsection*{(b)}
+
+Fix an arbitrary vertex $s \in V$. For each $t \in V \setminus \{s\}$: compute max $s$-$t$ flow.
+
+\[
+\text{Global min cut} = \min_{t \ne s} \text{min } s\text{-}t \text{ cut}
+\]
+
+\textbf{Correctness:} Let $(A, B)$ be a global min cut. $s \in A$ or $s \in B$; WLOG $s \in A$. $\forall\, t \in B$:
+\begin{align*}
+&\text{min } s\text{-}t \text{ cut} \le |(A,B)| = \text{global min cut} \quad \text{($(A,B)$ is an $s$-$t$ cut)} \\
+&\text{min } s\text{-}t \text{ cut} \ge \text{global min cut} \quad \text{(every $s$-$t$ cut is a cut)}
+\end{align*}
+$\implies$ equality. Since we try all $t$, some $t \in B$ is tested.
+
+$n - 1$ max-flow computations. With Ford-Fulkerson ($O(mF)$ per flow, $F = $ max flow value):
+\[\boxed{O(n \cdot mF)}\]
+
+
+%\newpage
+\section*{3. Maximal versus Maximum Matchings}
+
+\vspace{-10pt}
+\subsection*{(a)}
+
+Let $M_1$ be maximal, $M_2$ be maximum in bipartite $G = (X \cup Y, E)$.
+
+$|M_1| \le |M_2|$: $M_2$ is maximum $\implies |M_2| \ge |M|$ for every matching $M$.
+
+$|M_2| \le 2|M_1|$: $M_1$ maximal $\implies \forall\, e \in E$: $e$ has $\ge 1$ endpoint in $V(M_1)$. In particular, $\forall\, e \in M_2$: $e$ has $\ge 1$ endpoint in $V(M_1)$. Since $|V(M_1)| = 2|M_1|$ and $M_2$ is a matching (each vertex in $\le 1$ edge):
+\[
+|M_2| \le |V(M_1)| = 2|M_1| \qquad \qed
+\]
+
+\[\boxed{|M_1| \le |M_2| \le 2|M_1|}\]
+
+\vspace{-20pt}
+\subsection*{(b)}
+
+For $0 < k \le \ell \le 2k$, let $d = \ell - k$ (so $0 \le d \le k$).
+
+\textbf{Construction:}
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+\item $k - d$ isolated edges $(x_i, y_i)$ for $i = 1, \ldots, k{-}d$. In both matchings.
+\item $d$ augmenting paths of length $3$: for $j = 1, \ldots, d$, path $x'_{2j-1}$-$y'_{2j-1}$-$x'_{2j}$-$y'_{2j}$.
+\end{itemize}
+
+\textbf{Maximal matching $M_1$ (size $k$):} Take isolated edges ($k{-}d$) $+$ middle edge of each $P_3$ ($d$). Maximal: in each $P_3$, both outer edges have a saturated endpoint.
+
+\textbf{Maximum matching $M_2$ (size $\ell$):} Take isolated edges ($k{-}d$) $+$ two outer edges of each $P_3$ ($2d$). Total $= k - d + 2d = k + d = \ell$.
+
+\[\boxed{|M_1| = k, \quad |M_2| = \ell}\]
+
+\vspace{-20pt}
+\subsection*{(c)}
+
+$X = \{x_1, x_2\}$, $Y = \{y_1, \ldots, y_8\}$. Edges: $(x_1, y_j)$ and $(x_2, y_j)$ for $j = 1, \ldots, 5$.
+
+$|V| = 10$, $|E| = 10$. Maximum matching $= 2$ (since $|X| = 2$).
+
+Every maximal matching has size $2$: if $|M| = 1$, say $M = \{(x_1, y_j)\}$, then $x_2$ is free and $\exists\, y_i$ ($i \ne j$, $i \le 5$) free with $(x_2, y_i) \in E$ $\implies$ $M$ not maximal. Symmetric for $M = \{(x_2, y_j)\}$.
+
+\[\boxed{\text{Every maximal matching is maximum (size } 2\text{)}}\]
+
+
+\section*{4. Symmetric Difference of Two Matchings}
+
+Let $M_1, M_2$ be matchings in $G = (V, E)$.
+
+\vspace{-10pt}
+\subsection*{(a)}
+
+Consider the graph $H = (V, M_1 \oplus M_2)$. Each vertex $v$ is in $\le 1$ edge of $M_1$ and $\le 1$ edge of $M_2$ (matching property) $\implies \deg_H(v) \le 2$.
+
+A graph with $\Delta \le 2$ is a disjoint union of paths and cycles. \qed
+
+\vspace{-20pt}
+\subsection*{(b)}
+
+In any cycle of $M_1 \oplus M_2$, consecutive edges share a vertex. Since each matching uses each vertex at most once, consecutive edges must come from different matchings ($M_1 \setminus M_2$ and $M_2 \setminus M_1$ alternate). An alternating cycle has even length. \qed
+
+\vspace{-20pt}
+\subsection*{(c)}
+
+By (a) and (b), $M_1 \oplus M_2$ decomposes into paths and even cycles. In each component, count $M_1$-edges minus $M_2$-edges:
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+\item Even cycle: alternating $\implies$ equal count $\implies$ contribution $= 0$.
+\item Even path: alternating $\implies$ equal count $\implies$ contribution $= 0$.
+\item Odd path: one matching has $1$ more edge $\implies$ contribution $= \pm 1$.
+\end{itemize}
+
+Total: $|M_1 \setminus M_2| - |M_2 \setminus M_1| = |M_1| - |M_2| \ne 0$. Only odd paths contribute nonzero terms $\implies$ $\exists$ at least one odd path. \qed
+
+
+\end{document}
