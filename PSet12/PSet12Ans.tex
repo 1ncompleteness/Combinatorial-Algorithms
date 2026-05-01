@@ -14,39 +14,44 @@
 \section*{1. Online Hitting Set for Intervals}
 
 \vspace{-10pt}
-\subsection*{(a) Sophia: $\Omega(n)$ lower bound}
+\subsection*{(a) Sophia: $\Omega(n)$}
 
-Let $S = \{1, 2, \ldots, n\}$. Adversary reveals:
+$S = \{1, \ldots, n\}$. Adversary:
 \[
-A_1 = [1, n],\quad A_2 = [1, n{-}1],\quad \ldots,\quad A_n = [1, 1]
+A_i = [1,\, n{-}i{+}1], \quad i = 1, \ldots, n
 \]
 
-\textbf{Sophia's trace:} $A_1$ unhit $\implies$ add $\max(S \cap A_1) = n$. $A_2 = [1, n{-}1]$ contains no added point $\implies$ add $n{-}1$. Continuing: Sophia adds $n, n{-}1, \ldots, 1$. Total: $|H_{\text{Sophia}}| = n$.
+\textbf{Sophia:} $\forall\, i$: $A_i \cap H_{i-1} = \emptyset \implies$ add $\max(S \cap A_i) = n{-}i{+}1$.
+\[
+H_{\text{Sophia}} = \{1, 2, \ldots, n\}, \quad |H_{\text{Sophia}}| = n
+\]
 
-\textbf{OPT:} $1 \in A_i$ for all $i$ $\implies$ $H^* = \{1\}$, $|H^*| = 1$.
+\textbf{OPT:} $1 \in A_i$ $\forall\, i \implies H^* = \{1\}$, $|H^*| = 1$.
 
 \vspace{-8pt}
-\[\boxed{\text{ALG}/\text{OPT} = n/1 = \Omega(n)}\]
+\[\boxed{\mathrm{ALG}/\mathrm{OPT} = n = \Omega(n)}\]
 
 \vspace{-20pt}
-\subsection*{(b) Tammy: $O(\log n)$ upper bound}
+\subsection*{(b) Tammy: $O(\log n)$}
 
-Let $H^* = \{p_1^*, \ldots, p_k^*\}$ be OPT, $|H^*| = k$. Tammy adds midpoint $m = \lceil (\min(S \cap A) + \max(S \cap A))/2 \rceil$ when $A$ unhit.
+Tammy adds $m = \lceil (\min(S \cap A) + \max(S \cap A))/2 \rceil$ when $A \cap H = \emptyset$.
 
-\textbf{Charging:} When Tammy adds point $m$ for unhit interval $A$, charge $m$ to any $p^* \in H^* \cap A$ (exists since $H^*$ hits $A$).
+Let $H^* = \{p_1^*, \ldots, p_k^*\}$ be OPT. $\forall\, A_i$ with $A_i \cap H_{i-1} = \emptyset$: $\exists\, p^* \in H^* \cap A_i$.
 
-\textbf{Window invariant:} For each $p^* \in H^*$, let $W_{p^*}$ = set of points in $S$ between the nearest added points flanking $p^*$ (initially $W_{p^*} = S$). Suppose new interval $A \ni p^*$ is unhit. Then $A$ contains no added point $\implies A \cap S \subseteq W_{p^*}$. Tammy adds midpoint $m$ of $A \cap S$. Since $m \notin A$ (not yet added when $A$ processed) wait... $m$ being added NOW means:
+\textbf{Window:} $\forall\, p^* \in H^*$, define $W_{p^*} \subseteq S$ = points strictly between nearest added points flanking $p^*$. Initially $W_{p^*} = S$.
 
-Tammy adds $m$. After this, $m$ is closer to $p^*$ than any previously-added point flanking $p^*$, so window shrinks:
+\textbf{Halving:} fix $p^* \in H^* \cap A_i$. $A_i \cap H_{i-1} = \emptyset \implies A_i \cap S \subseteq W_{p^*}$. $m$ midpoint of $A_i \cap S$, $p^* \in A_i \implies$
 \[
-|W_{p^*}^{\text{new}}| \le \tfrac{1}{2} |A \cap S| \le \tfrac{1}{2} |W_{p^*}^{\text{old}}|
+|W_{p^*}^{\text{new}}| \le \tfrac{1}{2}|A_i \cap S| \le \tfrac{1}{2}|W_{p^*}^{\text{old}}|
 \]
 
-\textbf{Bound:} $|W_{p^*}| \le n$ initially. After $\lceil \log_2 n \rceil$ charges, $|W_{p^*}| = 0$ $\implies$ no future interval containing $p^*$ can be unhit. So each $p^*$ absorbs $\le \lceil \log_2 n \rceil$ charges.
-
+$|W_{p^*}| \le n$ initially $\implies \le \lceil \log_2 n \rceil$ such $A_i$ per $p^*$.
 \[
-|H_{\text{Tammy}}| \le k \lceil \log_2 n \rceil \implies \boxed{\text{ALG}/\text{OPT} = O(\log n)}
+|H_{\text{Tammy}}| \le \sum_{p^* \in H^*} \lceil \log_2 n \rceil = k \lceil \log_2 n \rceil
 \]
+
+\vspace{-8pt}
+\[\boxed{\mathrm{ALG}/\mathrm{OPT} \le \lceil \log_2 n \rceil = O(\log n)}\]
 
 
 \section*{2. Online Unit Covering}
@@ -54,46 +59,52 @@ Tammy adds $m$. After this, $m$ is closer to $p^*$ than any previously-added poi
 \vspace{-10pt}
 \subsection*{(i) Leftmost: unbounded}
 
-\textbf{Adversary:} $\varepsilon < 1/n$; points arrive as $x_i = -(i-1)\varepsilon$ for $i = 1, \ldots, n$.
+\textbf{Adversary:} $\varepsilon \in (0, 1/n)$, $x_i = -(i-1)\varepsilon$.
 
-\textbf{Leftmost's trace:} $x_1 = 0$: add $[0, 1]$. $x_2 = -\varepsilon$: uncovered $\implies$ add $[-\varepsilon, 1-\varepsilon]$. Continuing: each $x_i$ uncovered by previous intervals (all extend rightward from $x_j, j<i$) $\implies$ add $[x_i, x_i + 1]$. Total: $n$ intervals.
+$\forall\, j < i$: $x_j = -(j{-}1)\varepsilon > -(i{-}1)\varepsilon = x_i \implies x_i < x_j \implies x_i \notin [x_j, x_j{+}1]$. So Leftmost adds $[x_i, x_i{+}1]$ for every $i$.
+\[
+|\mathrm{ALG}| = n
+\]
 
-\textbf{OPT:} All points in $[-(n{-}1)\varepsilon, 0]$, span $< 1$. Single interval $[-(n{-}1)\varepsilon, 1 - (n{-}1)\varepsilon]$ covers all.
+\textbf{OPT:} all $x_i \in [-(n{-}1)\varepsilon, 0] \subseteq [-(n{-}1)\varepsilon, 1{-}(n{-}1)\varepsilon]$ (length 1 since $(n-1)\varepsilon < 1$). $|\mathrm{OPT}| = 1$.
 
 \vspace{-8pt}
-\[\boxed{\text{ALG}/\text{OPT} = n/1 \to \infty \text{ as } n \to \infty}\]
+\[\boxed{\mathrm{ALG}/\mathrm{OPT} = n \to \infty}\]
 
 \vspace{-20pt}
 \subsection*{(ii) Centered: 2-competitive}
 
-Let $c_1, c_2, \ldots, c_a$ be centers of ALG intervals in arrival order.
+Let $C = (c_1, \ldots, c_a)$ = centers in arrival order.
 
 \textbf{Claim 1:} $\forall\, j < k$: $|c_k - c_j| > 1/2$.
+\[
+c_k \text{ uncovered} \wedge [c_j - \tfrac{1}{2}, c_j + \tfrac{1}{2}] \in \mathcal{C} \implies c_k \notin [c_j - \tfrac{1}{2}, c_j + \tfrac{1}{2}] \implies |c_k - c_j| > \tfrac{1}{2}
+\]
 
-$c_k$ uncovered when arrived, but $[c_j - 1/2, c_j + 1/2] \in C$ at that time $\implies c_k \notin [c_j - 1/2, c_j + 1/2]$ $\implies |c_k - c_j| > 1/2$.
+\textbf{Claim 2:} $\forall\, I$ unit interval: $|C \cap I| \le 2$.
+\[
+c_p < c_q < c_r \in I \implies c_r - c_p > 1 \quad (\text{Claim 1: } c_q{-}c_p > \tfrac{1}{2},\, c_r{-}c_q > \tfrac{1}{2}) \quad \text{but } c_r - c_p \le 1 \;\bot
+\]
 
-\textbf{Claim 2:} Every unit interval $I$ contains $\le 2$ centers.
-
-Suppose $c_p < c_q < c_r$ in $I$ (length $\le 1$). Then $c_r - c_p \le 1$. But $c_q - c_p > 1/2$ and $c_r - c_q > 1/2$ $\implies c_r - c_p > 1$. Contradiction.
-
-\textbf{Competitive ratio:} Every ALG center lies in some OPT interval, and each OPT interval contains $\le 2$ centers.
+$\forall\, c \in C: \exists\, I^* \in \mathrm{OPT}$ with $c \in I^*$ (OPT covers $c$). Each $I^*$ contains $\le 2$ centers.
 
 \vspace{-8pt}
-\[\boxed{\text{ALG} \le 2 \cdot \text{OPT}}\]
+\[\boxed{\mathrm{ALG} = |C| \le 2 \cdot |\mathrm{OPT}|}\]
 
 \vspace{-20pt}
 \subsection*{(iii) Grid: 2-competitive}
 
-Grid cell $k = [k, k+1)$ for $k \in \mathbb{Z}$. ALG opens $\le 1$ interval per cell visited.
+Cell $k = [k, k{+}1)$, $k \in \mathbb{Z}$.
 
-\textbf{Claim:} Each OPT interval $[a, a+1]$ intersects $\le 2$ grid cells.
+\textbf{Claim:} $\forall\, I^* = [a, a{+}1] \in \mathrm{OPT}$: $|\{k : I^* \cap \text{cell } k \ne \emptyset\}| \le 2$.
+\[
+|I^*| = 1 \implies I^* \subseteq \text{cell}\, \lfloor a \rfloor \cup \text{cell}\, (\lfloor a \rfloor + 1)
+\]
 
-$[a, a+1]$ has length $1$, spanning at most 2 consecutive grid cells $\lfloor a \rfloor$ and $\lfloor a \rfloor + 1$.
-
-\textbf{Competitive ratio:} Each ALG cell contains a point covered by some OPT interval. Each OPT interval accounts for $\le 2$ ALG cells.
+ALG opens $\le 1$ interval per cell. $\forall\, x \in \mathrm{points}: \exists\, I^* \ni x \implies $ each ALG cell mapped to some OPT interval, each OPT interval $\to \le 2$ cells.
 
 \vspace{-8pt}
-\[\boxed{\text{ALG} \le 2 \cdot \text{OPT}}\]
+\[\boxed{\mathrm{ALG} \le 2 \cdot \mathrm{OPT}}\]
 
 
 \section*{3. Online Unit Clustering}
@@ -101,26 +112,43 @@ $[a, a+1]$ has length $1$, spanning at most 2 consecutive grid cells $\lfloor a 
 \vspace{-10pt}
 \subsection*{Algorithm (Grid)}
 
-When $x_i$ arrives: let $k = \lfloor x_i \rfloor$. If a cluster labeled $k$ exists, add $x_i$ to it. Else create new cluster labeled $k$ containing $\{x_i\}$.
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwBlock{Begin}{begin}{}
+\Begin{
+\textsc{GridCluster}$(x_1, x_2, \ldots)$\;
+$\Pi \longleftarrow \emptyset$ \tcp*{partition into clusters, indexed by integer label}
+\For{$i \longleftarrow 1, 2, \ldots$}{
+    $k \longleftarrow \lfloor x_i \rfloor$\;
+    \eIf{$\exists\, C_k \in \Pi$ with label $k$}{
+        $C_k \longleftarrow C_k \cup \{x_i\}$\;
+    }{
+        $\Pi \longleftarrow \Pi \cup \{(\{x_i\}, k)\}$ \tcp*{new cluster, label $k$}
+    }
+}
+\Return{$\Pi$}\;
+}
+\end{algorithm}
 
-\textbf{Validity:} Every cluster labeled $k$ contains points in $[k, k+1)$ $\implies$ diameter $< 1$ $\implies$ coverable by unit interval $[k, k+1]$. \checkmark
+\textbf{Validity:} cluster labeled $k$ has all points $\in [k, k{+}1) \implies$ diameter $< 1 \implies$ coverable by $[k, k{+}1]$.
 
 \vspace{-10pt}
 \subsection*{Competitive analysis}
 
-Let OPT partition points into $k^*$ clusters $C_1^*, \ldots, C_{k^*}^*$, each coverable by a unit interval.
+OPT: $k^*$ clusters $C_1^*, \ldots, C_{k^*}^*$. $\forall\, j$: $\exists\, a_j \in \mathbb{R}$ with $C_j^* \subseteq [a_j, a_j{+}1]$.
 
-\textbf{Claim:} Each $C_j^*$ contributes points to $\le 2$ ALG clusters.
-
-$C_j^* \subseteq [a_j, a_j + 1]$ $\implies$ $\lfloor x \rfloor \in \{\lfloor a_j \rfloor, \lfloor a_j \rfloor + 1\}$ $\forall\, x \in C_j^*$. So points of $C_j^*$ land in $\le 2$ grid labels.
-
-\textbf{Bound:} ALG clusters = distinct grid labels used. Each OPT cluster contributes $\le 2$ labels:
+\textbf{Claim:} $\forall\, j$: $|\{\lfloor x \rfloor : x \in C_j^*\}| \le 2$.
 \[
-|\text{ALG}| \le \sum_{j=1}^{k^*} 2 = 2 k^* = 2 \cdot |\text{OPT}|
+x \in C_j^* \subseteq [a_j, a_j{+}1] \implies \lfloor x \rfloor \in \{\lfloor a_j \rfloor,\, \lfloor a_j \rfloor + 1\}
+\]
+
+$|\mathrm{ALG}| = |\{\lfloor x_i \rfloor\}_i|$. Each OPT cluster $\to \le 2$ ALG labels:
+\[
+|\mathrm{ALG}| \le \sum_{j=1}^{k^*} 2 = 2 k^*
 \]
 
 \vspace{-8pt}
-\[\boxed{\text{ALG}/\text{OPT} \le 2}\]
+\[\boxed{\mathrm{ALG}/\mathrm{OPT} \le 2}\]
 
 
 \end{document}
